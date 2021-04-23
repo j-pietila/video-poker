@@ -1,0 +1,6 @@
+# Ignore all picture files
+*.png
+*.xcf
+
+# Ignore zipped data
+*.zip
