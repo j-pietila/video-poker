@@ -1,6 +1,13 @@
+# Ignore bytecode cache
+__*__
+
 # Ignore all picture files
 *.png
 *.xcf
+
+# Ignore text files
+*.doc
+*.txt
 
 # Ignore zipped data
 *.zip
