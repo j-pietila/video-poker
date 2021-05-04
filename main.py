@@ -47,16 +47,7 @@ class PokerGUI(tk.Tk):
         self.wins.set("Wins 0.00")
 
         self.winningTable = tk.StringVar()
-        self.winningTable.set("""
-                              Five-of-a-kind\t8.00
-                              Straight Flush\t8.00
-                              Four-of-a-kind\t3.00
-                              Full house\t1.60
-                              Flush\t\t0.80
-                              Straight\t\t0.60
-                              Three-of-a-kind\t0.40
-                              Two pairs\t\t0.40
-                              """)
+        self.winningTable.set(self.game.changeWinTable())
 
         self.holdButton = tk.StringVar()
         self.holdButton.set("HOLD")
@@ -93,7 +84,7 @@ class PokerGUI(tk.Tk):
         self.thirdCardButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.selectCard()])
         self.fourthCardButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.selectCard()])
         self.fifthCardButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.selectCard()])
-        self.betButton = tk.Button(self.buttonArea, bg="blue", activebackground="medium blue", text="BET", font=("Courier", 20), command=lambda: [self.game.changeBet(), self.bet.set("Bet {:.2f}".format(self.game.betLevels[self.game.betLevel]))])
+        self.betButton = tk.Button(self.buttonArea, bg="blue", activebackground="medium blue", text="BET", font=("Courier", 20), command=lambda: [self.game.changeBet(), self.bet.set("Bet {:.2f}".format(self.game.betLevels[self.game.betLevel])), self.winningTable.set(self.game.changeWinTable())])
         self.collectButton = tk.Button(self.buttonArea, bg="yellow2", activebackground="yellow3", text="COLLECT", font=("Courier", 20), command=lambda: [self.collectWinnings()])
         self.lowButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="LOW", font=("Courier", 20), command=lambda: [self.selectLow()])
         self.highButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="HIGH", font=("Courier", 20), command=lambda: [self.selectHigh()])

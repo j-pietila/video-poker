@@ -10,6 +10,13 @@ class PokerGame():
     def __init__(self, bet=0):
         self.betLevel = bet
         self.betLevels = [0.20, 0.40, 0.60, 0.80, 1.00]
+        self.winTables = {
+            0.20: [8.00, 8.00, 3.00, 1.60, 0.80, 0.60, 0.40, 0.40],
+            0.40: [16.00, 16.00, 6.00, 3.20, 1.60, 1.20, 0.80, 0.80],
+            0.60: [24.00, 24.00, 9.00, 4.80, 2.40, 1.80, 1.20, 1.20],
+            0.80: [32.00, 32.00, 12.00, 6.40, 3.20, 2.40, 1.60, 1.60],
+            1.00: [40.00, 40.00, 16.00, 8.00, 4.00, 3.00, 2.00, 2.00]
+        }
 
     @property
     def betLevel(self):
@@ -24,3 +31,42 @@ class PokerGame():
 
     def changeBet(self):
         self.betLevel += 1
+
+    def changeWinTable(self):
+        winTable = self.winTables.get(self.betLevels[self.betLevel])
+
+        if winTable[1] < 10:
+            winTableStr = """
+                        Five-of-a-kind          {:.2f}
+                        Straight Flush          {:.2f}
+                        Four-of-a-kind          {:.2f}
+                        Full house              {:.2f}
+                        Flush                   {:.2f}
+                        Straight                {:.2f}
+                        Three-of-a-kind         {:.2f}
+                        Two pairs               {:.2f}
+                        """.format(*winTable)
+        elif winTable[2] < 10:
+            winTableStr = """
+                        Five-of-a-kind         {:.2f}
+                        Straight Flush         {:.2f}
+                        Four-of-a-kind          {:.2f}
+                        Full house              {:.2f}
+                        Flush                   {:.2f}
+                        Straight                {:.2f}
+                        Three-of-a-kind         {:.2f}
+                        Two pairs               {:.2f}
+                        """.format(*winTable)
+        else:
+            winTableStr = """
+                        Five-of-a-kind         {:.2f}
+                        Straight Flush         {:.2f}
+                        Four-of-a-kind         {:.2f}
+                        Full house              {:.2f}
+                        Flush                   {:.2f}
+                        Straight                {:.2f}
+                        Three-of-a-kind         {:.2f}
+                        Two pairs               {:.2f}
+                        """.format(*winTable)
+
+        return winTableStr
