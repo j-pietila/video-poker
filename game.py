@@ -4,12 +4,16 @@ game.py: Game data and logic containing class for Video Poker
 @author: Joonas Pietilä
 """
 
+from cards import CardDeck
+
 class PokerGame():
     """Game class for Video Poker"""
 
     def __init__(self, bet=0):
         self.betLevel = bet
         self.betLevels = [0.20, 0.40, 0.60, 0.80, 1.00]
+        self.dealtCards = []
+        self.deck = CardDeck()
         self.winTables = {
             0.20: [8.00, 8.00, 3.00, 1.60, 0.80, 0.60, 0.40, 0.40],
             0.40: [16.00, 16.00, 6.00, 3.20, 1.60, 1.20, 0.80, 0.80],
