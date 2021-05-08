@@ -12,7 +12,7 @@ class PokerGame():
     def __init__(self, bet=0):
         self.betLevel = bet
         self.betLevels = [0.20, 0.40, 0.60, 0.80, 1.00]
-        self.dealtCards = []
+        self.dealtCards = ["empty" for i in range(5)]
         self.deck = CardDeck()
         self.winTables = {
             0.20: [8.00, 8.00, 3.00, 1.60, 0.80, 0.60, 0.40, 0.40],
@@ -74,3 +74,12 @@ class PokerGame():
                         """.format(*winTable)
 
         return winTableStr
+
+    def deal(self):
+        self.deck.buildDeck()
+        self.deck.shuffle()
+
+        self.dealtCards.clear()
+
+        for i in range(5):
+            self.dealtCards.append(self.deck.deck.pop(-1))

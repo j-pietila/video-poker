@@ -16,17 +16,40 @@ class PokerGUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.game = PokerGame()
-        self.loadGameAssets()
+        self.loadCardImages()
         self.createLayout()
 
-    def loadGameAssets(self):
+    def loadCardImages(self):
         self.openCardStack = Image.open("./PlayingCards/cardBack.png")
         self.openCardStack = self.openCardStack.resize((140, 215), Image.ANTIALIAS)
         self.cardStack = ImageTk.PhotoImage(self.openCardStack)
 
-        self.openFirstCard = Image.open("./PlayingCards/AS.png")
+        self.openFirstCard = Image.open("./PlayingCards/{}.png".format(self.game.dealtCards[0]))
         self.openFirstCard = self.openFirstCard.resize((140, 215), Image.ANTIALIAS)
         self.firstCard = ImageTk.PhotoImage(self.openFirstCard)
+
+        self.openSecondCard = Image.open("./PlayingCards/{}.png".format(self.game.dealtCards[1]))
+        self.openSecondCard = self.openSecondCard.resize((140, 215), Image.ANTIALIAS)
+        self.secondCard = ImageTk.PhotoImage(self.openSecondCard)
+
+        self.openThirdCard = Image.open("./PlayingCards/{}.png".format(self.game.dealtCards[2]))
+        self.openThirdCard = self.openThirdCard.resize((140, 215), Image.ANTIALIAS)
+        self.thirdCard = ImageTk.PhotoImage(self.openThirdCard)
+
+        self.openFourthCard = Image.open("./PlayingCards/{}.png".format(self.game.dealtCards[3]))
+        self.openFourthCard = self.openFourthCard.resize((140, 215), Image.ANTIALIAS)
+        self.fourthCard = ImageTk.PhotoImage(self.openFourthCard)
+
+        self.openFifthCard = Image.open("./PlayingCards/{}.png".format(self.game.dealtCards[4]))
+        self.openFifthCard = self.openFifthCard.resize((140, 215), Image.ANTIALIAS)
+        self.fifthCard = ImageTk.PhotoImage(self.openFifthCard)
+
+    def updateCardLabels(self):
+        self.firstCardLabel.configure(image=self.firstCard)
+        self.secondCardLabel.configure(image=self.secondCard)
+        self.thirdCardLabel.configure(image=self.thirdCard)
+        self.fourthCardLabel.configure(image=self.fourthCard)
+        self.fifthCardLabel.configure(image=self.fifthCard)
 
     def createLayout(self):
         self.title("Jokeri Pokeri")
@@ -62,15 +85,10 @@ class PokerGUI(tk.Tk):
         self.cardStackLabel.image = self.cardStack
 
         self.firstCardLabel = tk.Label(self.middleArea, bg="blue4", image=self.firstCard)
-        self.firstCardLabel.image = self.firstCard
-        self.secondCardLabel = tk.Label(self.middleArea, bg="blue4", image=self.firstCard)
-        self.secondCardLabel.image = self.firstCard
-        self.thirdCardLabel = tk.Label(self.middleArea, bg="blue4", image=self.firstCard)
-        self.thirdCardLabel.image = self.firstCard
-        self.fourthCardLabel = tk.Label(self.middleArea, bg="blue4", image=self.firstCard)
-        self.fourthCardLabel.image = self.firstCard
-        self.fifthCardLabel = tk.Label(self.middleArea, bg="blue4", image=self.firstCard)
-        self.fifthCardLabel.image = self.firstCard
+        self.secondCardLabel = tk.Label(self.middleArea, bg="blue4", image=self.secondCard)
+        self.thirdCardLabel = tk.Label(self.middleArea, bg="blue4", image=self.thirdCard)
+        self.fourthCardLabel = tk.Label(self.middleArea, bg="blue4", image=self.fourthCard)
+        self.fifthCardLabel = tk.Label(self.middleArea, bg="blue4", image=self.fifthCard)
 
         self.firstCardHoldLabel = tk.Label(self.bottomBar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19))
         self.secondCardHoldLabel = tk.Label(self.bottomBar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19))
@@ -89,7 +107,7 @@ class PokerGUI(tk.Tk):
         self.lowButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="LOW", font=("Courier", 20), command=lambda: [self.selectLow()])
         self.highButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="HIGH", font=("Courier", 20), command=lambda: [self.selectHigh()])
         self.doubleButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="DOUBLE", font=("Courier", 20), command=lambda: [self.double()])
-        self.dealButton = tk.Button(self.buttonArea, bg="green3", activebackground="green4", text="DEAL", font=("Courier", 20), command=lambda: [self.deal()])
+        self.dealButton = tk.Button(self.buttonArea, bg="green3", activebackground="green4", text="DEAL", font=("Courier", 20), command=lambda: [self.game.deal(), self.loadCardImages(), self.updateCardLabels()])
 
         # Canvas window objects
         self.creditsWindow = self.topBar.create_window(20, 15, anchor=tk.NW, height=65, width=380, window=self.creditsLabel)
