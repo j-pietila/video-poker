@@ -51,6 +51,27 @@ class PokerGUI(tk.Tk):
         self.fourthCardLabel.configure(image=self.fourthCard)
         self.fifthCardLabel.configure(image=self.fifthCard)
 
+    def updateHoldLabels(self, index):
+        self.holdLabels = {
+            0: self.firstCardHoldLabelWindow,
+            1: self.secondCardHoldLabelWindow,
+            2: self.thirdCardHoldLabelWindow,
+            3: self.fourthCardHoldLabelWindow,
+            4: self.fifthCardHoldLabelWindow
+        }
+
+        if self.game.holdCards[index] == 0:
+            self.bottomBar.itemconfigure(self.holdLabels.get(index), state="hidden")
+        else:
+            self.bottomBar.itemconfigure(self.holdLabels.get(index), state="normal")
+
+    def clearHoldLabels(self):
+        self.bottomBar.itemconfigure(self.firstCardHoldLabelWindow, state="hidden")
+        self.bottomBar.itemconfigure(self.secondCardHoldLabelWindow, state="hidden")
+        self.bottomBar.itemconfigure(self.thirdCardHoldLabelWindow, state="hidden")
+        self.bottomBar.itemconfigure(self.fourthCardHoldLabelWindow, state="hidden")
+        self.bottomBar.itemconfigure(self.fifthCardHoldLabelWindow, state="hidden")
+
     def createLayout(self):
         self.title("Jokeri Pokeri")
         self.geometry("1024x976")
@@ -97,11 +118,11 @@ class PokerGUI(tk.Tk):
         self.fifthCardHoldLabel = tk.Label(self.bottomBar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19))
 
         # Buttons
-        self.firstCardButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.selectCard()])
-        self.secondCardButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.selectCard()])
-        self.thirdCardButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.selectCard()])
-        self.fourthCardButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.selectCard()])
-        self.fifthCardButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.selectCard()])
+        self.firstCardHoldButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.game.hold(0), self.updateHoldLabels(0)])
+        self.secondCardHoldButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.game.hold(1), self.updateHoldLabels(1)])
+        self.thirdCardHoldButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.game.hold(2), self.updateHoldLabels(2)])
+        self.fourthCardHoldButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.game.hold(3), self.updateHoldLabels(3)])
+        self.fifthCardHoldButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.game.hold(4), self.updateHoldLabels(4)])
         self.betButton = tk.Button(self.buttonArea, bg="blue", activebackground="medium blue", text="BET", font=("Courier", 20), command=lambda: [self.game.changeBet(), self.bet.set("Bet {:.2f}".format(self.game.betLevels[self.game.betLevel])), self.winningTable.set(self.game.changeWinTable())])
         self.collectButton = tk.Button(self.buttonArea, bg="yellow2", activebackground="yellow3", text="COLLECT", font=("Courier", 20), command=lambda: [self.collectWinnings()])
         self.lowButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="LOW", font=("Courier", 20), command=lambda: [self.selectLow()])
@@ -122,17 +143,17 @@ class PokerGUI(tk.Tk):
         self.fourthCardWindow = self.middleArea.create_window(625, 550, anchor=tk.SW, window=self.fourthCardLabel)
         self.fifthCardWindow = self.middleArea.create_window(810, 550, anchor=tk.SW, window=self.fifthCardLabel)
 
-        self.firstCardHoldLabelWindow = self.bottomBar.create_window(80, 18, anchor=tk.NW, height=55, width=120, window=self.firstCardHoldLabel)
-        self.secondCardHoldLabelWindow = self.bottomBar.create_window(265, 18, anchor=tk.NW, height=55, width=120, window=self.secondCardHoldLabel)
-        self.thirdCardHoldLabelWindow = self.bottomBar.create_window(450, 18, anchor=tk.NW, height=55, width=120, window=self.thirdCardHoldLabel)
-        self.fourthCardHoldLabelWindow = self.bottomBar.create_window(635, 18, anchor=tk.NW, height=55, width=120, window=self.fourthCardHoldLabel)
-        self.fifthCardHoldLabelWindow = self.bottomBar.create_window(820, 18, anchor=tk.NW, height=55, width=120, window=self.fifthCardHoldLabel)
+        self.firstCardHoldLabelWindow = self.bottomBar.create_window(80, 18, anchor=tk.NW, height=55, width=120, window=self.firstCardHoldLabel, state="hidden")
+        self.secondCardHoldLabelWindow = self.bottomBar.create_window(265, 18, anchor=tk.NW, height=55, width=120, window=self.secondCardHoldLabel, state="hidden")
+        self.thirdCardHoldLabelWindow = self.bottomBar.create_window(450, 18, anchor=tk.NW, height=55, width=120, window=self.thirdCardHoldLabel, state="hidden")
+        self.fourthCardHoldLabelWindow = self.bottomBar.create_window(635, 18, anchor=tk.NW, height=55, width=120, window=self.fourthCardHoldLabel, state="hidden")
+        self.fifthCardHoldLabelWindow = self.bottomBar.create_window(820, 18, anchor=tk.NW, height=55, width=120, window=self.fifthCardHoldLabel, state="hidden")
 
-        self.firstCardButtonWindow = self.buttonArea.create_window(25, 15, anchor=tk.NW, height=80, width=145, window=self.firstCardButton)
-        self.secondCardButtonWindow = self.buttonArea.create_window(192, 15, anchor=tk.NW, height=80, width=145, window=self.secondCardButton)
-        self.thirdCardButtonWindow = self.buttonArea.create_window(357, 15, anchor=tk.NW, height=80, width=145, window=self.thirdCardButton)
-        self.fourthCardButtonWindow = self.buttonArea.create_window(522, 15, anchor=tk.NW, height=80, width=145, window=self.fourthCardButton)
-        self.fifthCardButtonWindow = self.buttonArea.create_window(687, 15, anchor=tk.NW, height=80, width=145, window=self.fifthCardButton)
+        self.firstCardHoldButtonWindow = self.buttonArea.create_window(25, 15, anchor=tk.NW, height=80, width=145, window=self.firstCardHoldButton)
+        self.secondCardHoldButtonWindow = self.buttonArea.create_window(192, 15, anchor=tk.NW, height=80, width=145, window=self.secondCardHoldButton)
+        self.thirdCardHoldButtonWindow = self.buttonArea.create_window(357, 15, anchor=tk.NW, height=80, width=145, window=self.thirdCardHoldButton)
+        self.fourthCardHoldButtonWindow = self.buttonArea.create_window(522, 15, anchor=tk.NW, height=80, width=145, window=self.fourthCardHoldButton)
+        self.fifthCardHoldButtonWindow = self.buttonArea.create_window(687, 15, anchor=tk.NW, height=80, width=145, window=self.fifthCardHoldButton)
 
         self.betButtonWindow = self.buttonArea.create_window(852, 15, anchor=tk.NW, height=80, width=145, window=self.betButton)
         self.collectButtonWindow = self.buttonArea.create_window(25, 110, anchor=tk.NW, height=80, width=145, window=self.collectButton)

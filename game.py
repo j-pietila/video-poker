@@ -14,6 +14,7 @@ class PokerGame():
         self.betLevels = [0.20, 0.40, 0.60, 0.80, 1.00]
         self.dealtCards = ["empty" for i in range(5)]
         self.deck = CardDeck()
+        self.holdCards = [0, 0, 0, 0, 0]
         self.winTables = {
             0.20: [8.00, 8.00, 3.00, 1.60, 0.80, 0.60, 0.40, 0.40],
             0.40: [16.00, 16.00, 6.00, 3.20, 1.60, 1.20, 0.80, 0.80],
@@ -83,3 +84,9 @@ class PokerGame():
 
         for i in range(5):
             self.dealtCards.append(self.deck.deck.pop(-1))
+
+    def hold(self, index):
+        if self.holdCards[index] == 0:
+            self.holdCards[index] = 1
+        else:
+            self.holdCards[index] = 0
