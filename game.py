@@ -112,3 +112,47 @@ class PokerGame():
                 self.holdCards[index] = 1
             else:
                 self.holdCards[index] = 0
+
+    def prepHand(self):
+        # Create copy of dealtCards to keep GUI card updates intact
+        self.handToCheck = self.dealtCards.copy()
+        self.jokers = []
+
+        # Split cards to value and suit for processing sublists
+        for i in range(len(self.handToCheck)):
+            if self.handToCheck[i] != "Joker":
+                self.card = [self.handToCheck[i][:-1], self.handToCheck[i][-1:]]
+                self.handToCheck[i] = self.card
+
+        # Remove Joker from checked hand because it doesn't have value or suit
+        if "Joker" in self.handToCheck:
+            index = self.handToCheck.index("Joker")
+            self.jokers.append(self.handToCheck.pop(index))
+
+        self.values = []
+        self.suites = []
+
+        for i in self.handToCheck:
+            self.values.append(i[0])
+            self.suites.append(i[1])
+
+        # Values converted to integers for determining straights
+        valueMap = {"J": 11, "Q": 12, "K": 13, "A1": 1, "A2": 14}
+
+        for i in range(len(self.values)):
+            self.numberCheck = self.values[i].isnumeric()
+            if self.numberCheck:
+                self.values[i] = int(self.values[i])
+            elif self.values[i] != "A":
+                self.values[i] = valueMap.get(self.values[i])
+
+        # Ace can be 1 or 14, value determined by other cards and possible Jokers
+        if "A" in self.values:
+            index = self.values.index("A")
+            lowerStraight = [2, 3, 4]
+            if any(i in self.values for i in lowerStraight):
+                self.values[index] = valueMap.get("A1")
+            else:
+                self.values[index] = valueMap.get("A2")
+
+        self.values.sort()
