@@ -128,7 +128,7 @@ class PokerGUI(tk.Tk):
         self.lowButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="LOW", font=("Courier", 20), command=lambda: [self.selectLow()])
         self.highButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="HIGH", font=("Courier", 20), command=lambda: [self.selectHigh()])
         self.doubleButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="DOUBLE", font=("Courier", 20), command=lambda: [self.double()])
-        self.dealButton = tk.Button(self.buttonArea, bg="green3", activebackground="green4", text="DEAL", font=("Courier", 20), command=lambda: [self.game.deal(), self.loadCardImages(), self.updateCardLabels()])
+        self.dealButton = tk.Button(self.buttonArea, bg="green3", activebackground="green4", text="DEAL", font=("Courier", 20), command=lambda: [self.game.deal(), self.loadCardImages(), self.updateCardLabels(), self.clearHoldLabels()])
 
         # Canvas window objects
         self.creditsWindow = self.topBar.create_window(20, 15, anchor=tk.NW, height=65, width=380, window=self.creditsLabel)

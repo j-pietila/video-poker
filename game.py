@@ -15,6 +15,7 @@ class PokerGame():
         self.dealtCards = ["empty" for i in range(5)]
         self.deck = CardDeck()
         self.holdCards = [0, 0, 0, 0, 0]
+        self.isInitialDeal = True
         self.winTables = {
             0.20: [8.00, 8.00, 3.00, 1.60, 0.80, 0.60, 0.40, 0.40],
             0.40: [16.00, 16.00, 6.00, 3.20, 1.60, 1.20, 0.80, 0.80],
@@ -35,7 +36,8 @@ class PokerGame():
             self.__betLevel = 0
 
     def changeBet(self):
-        self.betLevel += 1
+        if self.isInitialDeal:
+            self.betLevel += 1
 
     def changeWinTable(self):
         winTable = self.winTables.get(self.betLevels[self.betLevel])
@@ -77,6 +79,12 @@ class PokerGame():
         return winTableStr
 
     def deal(self):
+        if self.isInitialDeal:
+            self.initialDeal()
+        else:
+            self.additionalDeal()
+
+    def initialDeal(self):
         self.deck.buildDeck()
         self.deck.shuffle()
 
@@ -85,8 +93,22 @@ class PokerGame():
         for i in range(5):
             self.dealtCards.append(self.deck.deck.pop(-1))
 
+        self.isInitialDeal = False
+
+    def additionalDeal(self):
+        self.discardedCards = enumerate(self.holdCards)
+        
+        for i in self.discardedCards:
+            if i[1] == 0:
+                self.dealtCards[i[0]] = self.deck.deck.pop(-1)
+
+        self.holdCards = [0, 0, 0, 0, 0]
+
+        self.isInitialDeal = True
+
     def hold(self, index):
-        if self.holdCards[index] == 0:
-            self.holdCards[index] = 1
-        else:
-            self.holdCards[index] = 0
+        if not self.isInitialDeal:
+            if self.holdCards[index] == 0:
+                self.holdCards[index] = 1
+            else:
+                self.holdCards[index] = 0
