@@ -156,13 +156,14 @@ class PokerGame():
                 self.values[i] = valueMap.get(self.values[i])
 
         # Ace can be 1 or 14, value determined by other cards and possible Jokers
-        if "A" in self.values:
-            index = self.values.index("A")
-            lowerStraight = [2, 3, 4]
-            if any(i in self.values for i in lowerStraight):
-                self.values[index] = valueMap.get("A1")
-            else:
-                self.values[index] = valueMap.get("A2")
+        for i in self.values:
+            if i == "A":
+                index = self.values.index("A")
+                lowerStraight = [2, 3, 4]
+                if any(i in self.values for i in lowerStraight):
+                    self.values[index] = valueMap.get("A1")
+                else:
+                    self.values[index] = valueMap.get("A2")
 
         self.values.sort()
 
