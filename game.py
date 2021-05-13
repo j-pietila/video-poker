@@ -102,6 +102,15 @@ class PokerGame():
             if i[1] == 0:
                 self.dealtCards[i[0]] = self.deck.deck.pop(-1)
 
+        self.currentWinIndex = self.checkHand()
+
+        if self.currentWinIndex == -1:
+            self.currentWin = 0.00
+        else:
+            self.currentWin = self.winTables.get(self.betLevels[self.betLevel])[self.currentWinIndex]
+
+        print("Won: {}".format(self.currentWin))
+
         self.holdCards = [0, 0, 0, 0, 0]
 
         self.isInitialDeal = True
@@ -156,3 +165,67 @@ class PokerGame():
                 self.values[index] = valueMap.get("A2")
 
         self.values.sort()
+
+    def checkHand(self):
+        """Checks the prepared final hand and returns winTable index according to possible win"""
+        self.prepHand()
+
+        uniqueValues = set()
+        uniqueSuits = set()
+
+        for i in self.values:
+            uniqueValues.add(i)
+
+        for i in self.suites:
+            uniqueSuits.add(i)
+
+        # Counts are checked against length of values list, because possible jokers are removed from that lists
+        # and so the possible jokers will always complete the hands accordingly
+
+        # 1. Five-of-a-kind
+        for i in uniqueValues:
+            if self.values.count(i) == len(self.values):
+                return 0
+
+        # 2. Straight Flush
+        if len(uniqueValues) == len(self.values) and len(uniqueSuits) == 1: # Every card must be unique value and same suit
+            if len(self.values) == 5 and self.values[-1] - self.values[0] == 4: # Five cards, sorted highest and lowest value difference of 4
+                return 1
+            elif len(self.values) == 4 and self.values[-1] - self.values[0] == 4: # Four cards, sorted highest and lowest value difference of 4, joker completes middle
+                return 1
+            elif len(self.values) == 4 and self.values[-1] - self.values[0] + len(self.jokers) == 4: # Four cards, sorted highest and lowest value difference of 3, joker completes either end
+                return 1
+
+        # 3. Four-of-a-kind
+        for i in uniqueValues:
+            if self.values.count(i) == len(self.values) - 1: # By subtracting one from the len of values we account for possible jokers
+                return 2
+
+        # 4. Full house
+        if len(uniqueValues) == 2: # Four-of-a-kind is already checked, if there are only two distinct values it must be full house
+            return 3
+
+        # 5. Flush
+        if len(uniqueSuits) == 1: 
+            return 4
+
+        # 6. Straight
+        if len(uniqueValues) == len(self.values): # Every card must be unique value
+            if len(self.values) == 5 and self.values[-1] - self.values[0] == 4: # Five cards, sorted highest and lowest value difference of 4
+                return 5
+            elif len(self.values) == 4 and self.values[-1] - self.values[0] == 4: # Four cards, sorted highest and lowest value difference of 4, joker completes middle
+                return 5
+            elif len(self.values) == 4 and self.values[-1] - self.values[0] + len(self.jokers) == 4: # Four cards, sorted highest and lowest value difference of 3, joker completes either end
+                return 5
+
+        # 7. Three-of-a-kind
+        for i in uniqueValues:
+            if self.values.count(i) == len(self.values) - 2: # By subtracting two from the len of values we account for possible jokers
+                return 6
+
+        # 8. Two pairs
+        if len(uniqueValues) == 3: # After all the other checks three distinct values leaves two pairs
+            return 7
+
+        # No win
+        return -1
