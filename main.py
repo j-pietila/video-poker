@@ -72,6 +72,32 @@ class PokerGUI(tk.Tk):
         self.bottomBar.itemconfigure(self.fourthCardHoldLabelWindow, state="hidden")
         self.bottomBar.itemconfigure(self.fifthCardHoldLabelWindow, state="hidden")
 
+    def updateCurrentWin(self):
+        if self.game.currentWin > 0:
+            self.currentWin.set("{:.2f}".format(self.game.currentWin))
+            self.bottomBar.configure(bg="DeepPink3")
+            self.bottomBar.itemconfigure(self.doubleQuestionWindow, state="normal")
+            self.bottomBar.itemconfigure(self.currentWinWindow, state="normal")
+
+    def collectWinnings(self):
+        self.decrement = self.game.currentWin / 8
+        self.currentWinUpdate = self.game.currentWin
+
+        self.game.collectWin()
+
+        for i in range(7, -1, -1):
+            self.after(250, self.transferWinnings(i))
+
+        self.bottomBar.configure(bg="snow4")
+        self.bottomBar.itemconfigure(self.doubleQuestionWindow, state="hidden")
+        self.bottomBar.itemconfigure(self.currentWinWindow, state="hidden")
+
+    def transferWinnings(self, i):
+        self.currentWinUpdate -= self.decrement
+        self.wins.set("Wins {:.2f}".format(self.game.winnings - (i * self.decrement)))
+        self.currentWin.set("{:.2f}".format(abs(self.currentWinUpdate))) # Results occasionally in -0.00, hence abs()
+        self.update()
+
     def createLayout(self):
         self.title("Jokeri Pokeri")
         self.geometry("1024x976")
@@ -88,10 +114,13 @@ class PokerGUI(tk.Tk):
         self.bet = tk.StringVar()
         self.bet.set("Bet {:.2f}".format(self.game.betLevels[self.game.betLevel]))
         self.wins = tk.StringVar()
-        self.wins.set("Wins 0.00")
+        self.wins.set("Wins {:.2f}".format(self.game.winnings))
 
         self.winningTable = tk.StringVar()
         self.winningTable.set(self.game.changeWinTable())
+
+        self.currentWin = tk.StringVar()
+        self.currentWin.set("{:.2f}".format(self.game.currentWin))
 
         self.holdButton = tk.StringVar()
         self.holdButton.set("HOLD")
@@ -116,6 +145,8 @@ class PokerGUI(tk.Tk):
         self.thirdCardHoldLabel = tk.Label(self.bottomBar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19))
         self.fourthCardHoldLabel = tk.Label(self.bottomBar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19))
         self.fifthCardHoldLabel = tk.Label(self.bottomBar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19))
+        self.doubleQuestionLabel = tk.Label(self.bottomBar, bg="DeepPink3", text="WANT TO DOUBLE?", font=("Courier", 26))
+        self.currentWinLabel = tk.Label(self.bottomBar, bg="navy", fg="azure", textvariable=self.currentWin, font=("Courier", 24))
 
         # Buttons
         self.firstCardHoldButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.game.hold(0), self.updateHoldLabels(0)])
@@ -128,7 +159,7 @@ class PokerGUI(tk.Tk):
         self.lowButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="LOW", font=("Courier", 20), command=lambda: [self.selectLow()])
         self.highButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="HIGH", font=("Courier", 20), command=lambda: [self.selectHigh()])
         self.doubleButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="DOUBLE", font=("Courier", 20), command=lambda: [self.double()])
-        self.dealButton = tk.Button(self.buttonArea, bg="green3", activebackground="green4", text="DEAL", font=("Courier", 20), command=lambda: [self.game.deal(), self.loadCardImages(), self.updateCardLabels(), self.clearHoldLabels()])
+        self.dealButton = tk.Button(self.buttonArea, bg="green3", activebackground="green4", text="DEAL", font=("Courier", 20), command=lambda: [self.game.deal(), self.loadCardImages(), self.updateCardLabels(), self.clearHoldLabels(), self.updateCurrentWin()])
 
         # Canvas window objects
         self.creditsWindow = self.topBar.create_window(20, 15, anchor=tk.NW, height=65, width=380, window=self.creditsLabel)
@@ -148,6 +179,8 @@ class PokerGUI(tk.Tk):
         self.thirdCardHoldLabelWindow = self.bottomBar.create_window(450, 18, anchor=tk.NW, height=55, width=120, window=self.thirdCardHoldLabel, state="hidden")
         self.fourthCardHoldLabelWindow = self.bottomBar.create_window(635, 18, anchor=tk.NW, height=55, width=120, window=self.fourthCardHoldLabel, state="hidden")
         self.fifthCardHoldLabelWindow = self.bottomBar.create_window(820, 18, anchor=tk.NW, height=55, width=120, window=self.fifthCardHoldLabel, state="hidden")
+        self.doubleQuestionWindow = self.bottomBar.create_window(230, 18, anchor=tk.NW, height=60, width=340, window=self.doubleQuestionLabel, state="hidden")
+        self.currentWinWindow = self.bottomBar.create_window(600, 18, anchor=tk.NW, height=60, width=180, window=self.currentWinLabel, state="hidden")
 
         self.firstCardHoldButtonWindow = self.buttonArea.create_window(25, 15, anchor=tk.NW, height=80, width=145, window=self.firstCardHoldButton)
         self.secondCardHoldButtonWindow = self.buttonArea.create_window(192, 15, anchor=tk.NW, height=80, width=145, window=self.secondCardHoldButton)

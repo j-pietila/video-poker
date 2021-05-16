@@ -12,10 +12,12 @@ class PokerGame():
     def __init__(self, bet=0):
         self.betLevel = bet
         self.betLevels = [0.20, 0.40, 0.60, 0.80, 1.00]
+        self.currentWin = 0.0
         self.dealtCards = ["empty" for i in range(5)]
         self.deck = CardDeck()
         self.holdCards = [0, 0, 0, 0, 0]
         self.isInitialDeal = True
+        self.winnings = 0.00
         self.winTables = {
             0.20: [8.00, 8.00, 3.00, 1.60, 0.80, 0.60, 0.40, 0.40],
             0.40: [16.00, 16.00, 6.00, 3.20, 1.60, 1.20, 0.80, 0.80],
@@ -108,8 +110,6 @@ class PokerGame():
             self.currentWin = 0.00
         else:
             self.currentWin = self.winTables.get(self.betLevels[self.betLevel])[self.currentWinIndex]
-
-        print("Won: {}".format(self.currentWin))
 
         self.holdCards = [0, 0, 0, 0, 0]
 
@@ -230,3 +230,7 @@ class PokerGame():
 
         # No win
         return -1
+
+    def collectWin(self):
+        self.winnings += self.currentWin
+        self.currentWin = 0.0
