@@ -13,10 +13,12 @@ class PokerGame():
         self.betLevel = bet
         self.betLevels = [0.20, 0.40, 0.60, 0.80, 1.00]
         self.currentWin = 0.0
+        self.currentBet = 0.0
         self.dealtCards = ["empty" for i in range(5)]
         self.deck = CardDeck()
         self.holdCards = [0, 0, 0, 0, 0]
         self.isInitialDeal = True
+        self.doublingActive = False
         self.winnings = 0.00
         self.winTables = {
             0.20: [8.00, 8.00, 3.00, 1.60, 0.80, 0.60, 0.40, 0.40],
@@ -230,6 +232,32 @@ class PokerGame():
 
         # No win
         return -1
+
+    def double(self):
+        """Double current win and deal one random card from
+        newly built and shuffled card deck."""
+        self.doublingActive = True
+        self.currentWin *= 2
+
+        self.deck.buildDeck()
+        self.deck.shuffle()
+
+        self.dealtCards = ["empty" for i in range(5)]
+        self.dealtCards[2] = self.deck.deck.pop(-1)
+
+    def checkDoubling(self, doubleChoice):
+        """Return True for succesfull doubling if doubling card is
+        Joker or in double choice from GUI. Return False if not."""
+        self.doublingActive = False
+
+        if self.dealtCards[2][:-1] in doubleChoice:
+            return True
+        elif self.dealtCards[2] == "Joker":
+            return True
+
+        self.currentWin = 0.0
+
+        return False
 
     def collectWin(self):
         self.winnings += self.currentWin

@@ -1,6 +1,6 @@
 """
 Video Poker - Legendary Finnish Jokeri Pokeri by RAY
-main.py: Main program file for Video Poker
+main.py: Main program file for Video Poker containing the tkinter GUI class
 @author: Joonas Pietilä
 """
 
@@ -32,7 +32,10 @@ class PokerGUI(tk.Tk):
         self.openSecondCard = self.openSecondCard.resize((140, 215), Image.ANTIALIAS)
         self.secondCard = ImageTk.PhotoImage(self.openSecondCard)
 
-        self.openThirdCard = Image.open("./PlayingCards/{}.png".format(self.game.dealtCards[2]))
+        if self.game.doublingActive:
+            self.openThirdCard = Image.open("./PlayingCards/cardBack.png")
+        else:
+            self.openThirdCard = Image.open("./PlayingCards/{}.png".format(self.game.dealtCards[2]))
         self.openThirdCard = self.openThirdCard.resize((140, 215), Image.ANTIALIAS)
         self.thirdCard = ImageTk.PhotoImage(self.openThirdCard)
 
@@ -98,6 +101,74 @@ class PokerGUI(tk.Tk):
         self.currentWin.set("{:.2f}".format(abs(self.currentWinUpdate))) # Results occasionally in -0.00, hence abs()
         self.update()
 
+    def deal(self):
+        """Event handler for deal button. Check that dealing
+        is allowed in current game situation."""
+        if self.game.currentWin == 0:
+            self.game.deal()
+
+            self.loadCardImages()
+            self.updateCardLabels()
+            self.clearHoldLabels()
+
+            self.updateCurrentWin()
+
+    def activateDoubling(self):
+        """Event handler for double button. Update GUI elements to active
+        doubling view and run doubling function from game module."""
+        if self.game.isInitialDeal == True and self.game.currentWin > 0:
+            self.game.double()
+            self.loadCardImages()
+            self.updateCardLabels() # make another function to draw only one card for the doubling scenario
+            self.bottomBar.itemconfigure(self.doubleQuestionWindow, state="hidden")
+            self.bottomBar.itemconfigure(self.activeDoublingWindow, state="normal") # add the rolling doubling options
+            self.bottomBar.coords(self.currentWinWindow, 270, 18)
+            self.currentWin.set("{:.2f}".format(self.game.currentWin))
+
+    def selectLow(self):
+        """Run doubling result check from game module with low card range
+        selection and update GUI according to doubling result."""
+        if self.game.doublingActive:
+            doubleChoice = ["A", "2", "3", "4", "5", "6"]
+
+            doubleWin = self.game.checkDoubling(doubleChoice)
+
+            self.loadCardImages()
+            self.updateCardLabels()
+            
+            if doubleWin:
+                self.bottomBar.coords(self.currentWinWindow, 600, 18)
+                self.bottomBar.itemconfigure(self.activeDoublingWindow, state="hidden")
+                self.updateCurrentWin()
+            else:
+                self.bottomBar.configure(bg="snow4")
+                self.bottomBar.itemconfigure(self.activeDoublingWindow, state="hidden") # add the rolling doubling options
+                self.bottomBar.coords(self.currentWinWindow, 600, 18)
+                self.bottomBar.itemconfigure(self.currentWinWindow, state="hidden")
+                self.currentWin.set("{:.2f}".format(self.game.currentWin))
+
+    def selectHigh(self):
+        """Run doubling result check from game module with high card range
+        selection and update GUI according to doubling result."""
+        if self.game.doublingActive:
+            doubleChoice = ["8", "9", "10", "J", "Q", "K"]
+
+            doubleWin = self.game.checkDoubling(doubleChoice)
+
+            self.loadCardImages()
+            self.updateCardLabels()
+            
+            if doubleWin:
+                self.bottomBar.coords(self.currentWinWindow, 600, 18)
+                self.bottomBar.itemconfigure(self.activeDoublingWindow, state="hidden")
+                self.updateCurrentWin()
+            else:
+                self.bottomBar.configure(bg="snow4")
+                self.bottomBar.itemconfigure(self.activeDoublingWindow, state="hidden") # add the rolling doubling options to this
+                self.bottomBar.coords(self.currentWinWindow, 600, 18)
+                self.bottomBar.itemconfigure(self.currentWinWindow, state="hidden")
+                self.currentWin.set("{:.2f}".format(self.game.currentWin))
+
     def createLayout(self):
         self.title("Jokeri Pokeri")
         self.geometry("1024x976")
@@ -147,6 +218,7 @@ class PokerGUI(tk.Tk):
         self.fifthCardHoldLabel = tk.Label(self.bottomBar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19))
         self.doubleQuestionLabel = tk.Label(self.bottomBar, bg="DeepPink3", text="WANT TO DOUBLE?", font=("Courier", 26))
         self.currentWinLabel = tk.Label(self.bottomBar, bg="navy", fg="azure", textvariable=self.currentWin, font=("Courier", 24))
+        self.currentBetLabel = tk.Label(self.bottomBar, bg="DeepPink3", text="BET", font=("Courier", 24))
 
         # Buttons
         self.firstCardHoldButton = tk.Button(self.buttonArea, bg="red3", activebackground="red4", textvariable=self.holdButton, font=("Courier", 20), command=lambda: [self.game.hold(0), self.updateHoldLabels(0)])
@@ -158,8 +230,8 @@ class PokerGUI(tk.Tk):
         self.collectButton = tk.Button(self.buttonArea, bg="yellow2", activebackground="yellow3", text="COLLECT", font=("Courier", 20), command=lambda: [self.collectWinnings()])
         self.lowButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="LOW", font=("Courier", 20), command=lambda: [self.selectLow()])
         self.highButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="HIGH", font=("Courier", 20), command=lambda: [self.selectHigh()])
-        self.doubleButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="DOUBLE", font=("Courier", 20), command=lambda: [self.double()])
-        self.dealButton = tk.Button(self.buttonArea, bg="green3", activebackground="green4", text="DEAL", font=("Courier", 20), command=lambda: [self.game.deal(), self.loadCardImages(), self.updateCardLabels(), self.clearHoldLabels(), self.updateCurrentWin()])
+        self.doubleButton = tk.Button(self.buttonArea, bg="DarkOrange1", activebackground="DarkOrange3", text="DOUBLE", font=("Courier", 20), command=lambda: [self.activateDoubling()])
+        self.dealButton = tk.Button(self.buttonArea, bg="green3", activebackground="green4", text="DEAL", font=("Courier", 20), command=lambda: [self.deal()])
 
         # Canvas window objects
         self.creditsWindow = self.topBar.create_window(20, 15, anchor=tk.NW, height=65, width=380, window=self.creditsLabel)
@@ -181,6 +253,7 @@ class PokerGUI(tk.Tk):
         self.fifthCardHoldLabelWindow = self.bottomBar.create_window(820, 18, anchor=tk.NW, height=55, width=120, window=self.fifthCardHoldLabel, state="hidden")
         self.doubleQuestionWindow = self.bottomBar.create_window(230, 18, anchor=tk.NW, height=60, width=340, window=self.doubleQuestionLabel, state="hidden")
         self.currentWinWindow = self.bottomBar.create_window(600, 18, anchor=tk.NW, height=60, width=180, window=self.currentWinLabel, state="hidden")
+        self.activeDoublingWindow = self.bottomBar.create_window(180, 18, anchor=tk.NW, height=60, width=80, window=self.currentBetLabel, state="hidden")
 
         self.firstCardHoldButtonWindow = self.buttonArea.create_window(25, 15, anchor=tk.NW, height=80, width=145, window=self.firstCardHoldButton)
         self.secondCardHoldButtonWindow = self.buttonArea.create_window(192, 15, anchor=tk.NW, height=80, width=145, window=self.secondCardHoldButton)
