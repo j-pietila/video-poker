@@ -1,6 +1,6 @@
 # Jokeripokeri - Legendary RAY video poker game
 
-![screenshot](https://github.com/j-pietila/video-poker/screenshot.jpg?raw=true)
+![screenshot](screenshot.jpg?raw=true)
 
 If you were living in Finland during the late 80's or 90's you are probably very familiar
 with this game. The Jokeripokeri machines were abundant in every market, fuel station,
