@@ -10,31 +10,36 @@ class CardDeck():
     """Playing card deck for Video Poker"""
 
     def __init__(self):
-        self.buildDeck()
+        self.build_deck()
 
-    def buildDeck(self):
+    def build_deck(self):
+        """Build a standard 52 card deck with one Joker. Deck is
+        a list of strings "value+suit" representing cards."""
         self.deck = ["Joker"]
-        self.suits = ["C", "D", "H", "S"]
-        self.faceValues = ["J", "Q", "K", "A"]
 
-        for i in range(2, 11):
-            for j in self.suits:
-                self.deck.append(str(i) + j)
+        suit = ["C", "D", "H", "S"]
+        face_values = ["J", "Q", "K", "A"]
 
-        for i in self.faceValues:
-            for j in self.suits:
-                self.deck.append(i + j)
+        for value in range(2, 11):
+            for suite in suit:
+                self.deck.append(str(value) + suite)
+
+        for face in face_values:
+            for suite in suit:
+                self.deck.append(face + suite)
 
     def shuffle(self):
-        """Fisher-Yates-Knuth in-place shuffle algorithm for unbiased permutations"""
+        """Fisher-Yates-Knuth in-place shuffle algorithm
+        for unbiased permutations"""
         # Initial unshuffled sublists border is last array index
-        unShuffled = len(self.deck) - 1
+        un_shuffled = len(self.deck) - 1
 
-        while unShuffled > 0:
+        while un_shuffled > 0:
             # Shuffled index has to be selected randomly
-            toShuffle = randint(0, unShuffled)
+            to_shuffle = randint(0, un_shuffled)
 
-            self.deck[toShuffle], self.deck[unShuffled] = self.deck[unShuffled], self.deck[toShuffle]
+            self.deck[to_shuffle], self.deck[un_shuffled] \
+                = self.deck[un_shuffled], self.deck[to_shuffle]
 
             # Update the unshuffled sublist border index
-            unShuffled -= 1
+            un_shuffled -= 1

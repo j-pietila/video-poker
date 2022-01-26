@@ -10,17 +10,16 @@ class PokerGame():
     """Game class for Video Poker"""
 
     def __init__(self, bet=0):
-        self.betLevel = bet
-        self.betLevels = [0.20, 0.40, 0.60, 0.80, 1.00]
-        self.currentWin = 0.0
-        self.currentBet = 0.0
-        self.dealtCards = ["empty" for i in range(5)]
         self.deck = CardDeck()
-        self.holdCards = [0, 0, 0, 0, 0]
-        self.isInitialDeal = True
-        self.doublingActive = False
-        self.winnings = 0.00
-        self.winTables = {
+        self.dealt_cards = ["empty" for _ in range(5)]
+        self.hold_card_flags = [0, 0, 0, 0, 0]
+        self.bet_level = bet
+        self.bet_levels = [0.20, 0.40, 0.60, 0.80, 1.00]
+        self.winnings = 0.0
+        self.current_win = 0.0
+        self.is_initial_deal = True
+        self.is_doubling_active = False
+        self.win_tables = {
             0.20: [8.00, 8.00, 3.00, 1.60, 0.80, 0.60, 0.40, 0.40],
             0.40: [16.00, 16.00, 6.00, 3.20, 1.60, 1.20, 0.80, 0.80],
             0.60: [24.00, 24.00, 9.00, 4.80, 2.40, 1.80, 1.20, 1.20],
@@ -29,25 +28,31 @@ class PokerGame():
         }
 
     @property
-    def betLevel(self):
-        return self.__betLevel
+    def bet_level(self):
+        """Return __bet_level."""
+        return self.__bet_level
 
-    @betLevel.setter
-    def betLevel(self, bet):
+    @bet_level.setter
+    def bet_level(self, bet):
+        """Set __bet_level with roll-over point at five."""
         if bet < 5:
-            self.__betLevel = bet
+            self.__bet_level = bet
         else:
-            self.__betLevel = 0
+            self.__bet_level = 0
 
-    def changeBet(self):
-        if self.isInitialDeal:
-            self.betLevel += 1
+    def change_bet(self):
+        """Increase bet level by one, if game
+        is in initial deal phase."""
+        if self.is_initial_deal:
+            self.bet_level += 1
 
-    def changeWinTable(self):
-        winTable = self.winTables.get(self.betLevels[self.betLevel])
+    def change_win_table(self):
+        """Change current win table string according
+        to current bet level."""
+        win_table = self.win_tables.get(self.bet_levels[self.bet_level])
 
-        if winTable[1] < 10:
-            winTableStr = """
+        if win_table[1] < 10:
+            win_table_str = """
                         Five-of-a-kind          {:.2f}
                         Straight Flush          {:.2f}
                         Four-of-a-kind          {:.2f}
@@ -56,9 +61,9 @@ class PokerGame():
                         Straight                {:.2f}
                         Three-of-a-kind         {:.2f}
                         Two pairs               {:.2f}
-                        """.format(*winTable)
-        elif winTable[2] < 10:
-            winTableStr = """
+                        """.format(*win_table)
+        elif win_table[2] < 10:
+            win_table_str = """
                         Five-of-a-kind         {:.2f}
                         Straight Flush         {:.2f}
                         Four-of-a-kind          {:.2f}
@@ -67,9 +72,9 @@ class PokerGame():
                         Straight                {:.2f}
                         Three-of-a-kind         {:.2f}
                         Two pairs               {:.2f}
-                        """.format(*winTable)
+                        """.format(*win_table)
         else:
-            winTableStr = """
+            win_table_str = """
                         Five-of-a-kind         {:.2f}
                         Straight Flush         {:.2f}
                         Four-of-a-kind         {:.2f}
@@ -78,187 +83,215 @@ class PokerGame():
                         Straight                {:.2f}
                         Three-of-a-kind         {:.2f}
                         Two pairs               {:.2f}
-                        """.format(*winTable)
+                        """.format(*win_table)
 
-        return winTableStr
+        return win_table_str
 
     def deal(self):
-        if self.isInitialDeal:
-            self.initialDeal()
+        """Check the initial deal flag and call either
+        initial_deal or additional_deal function."""
+        if self.is_initial_deal:
+            self.initial_deal()
         else:
-            self.additionalDeal()
+            self.additional_deal()
 
-    def initialDeal(self):
-        self.deck.buildDeck()
+    def initial_deal(self):
+        """Build and shuffle a new deck, pop five cards from deck
+        to dealt_cards and set initial deal flag to False."""
+        self.deck.build_deck()
         self.deck.shuffle()
 
-        self.dealtCards.clear()
+        self.dealt_cards.clear()
 
-        for i in range(5):
-            self.dealtCards.append(self.deck.deck.pop(-1))
+        for _ in range(5):
+            self.dealt_cards.append(self.deck.deck.pop(-1))
 
-        self.isInitialDeal = False
+        self.is_initial_deal = False
 
-    def additionalDeal(self):
-        self.discardedCards = enumerate(self.holdCards)
-        
-        for i in self.discardedCards:
+    def additional_deal(self):
+        """Discard cards that have their hold card flag set to 0
+        and replace them with cards popped from the deck. Reset hold
+        card flags and set initial deal flag to True."""
+        discarded_cards = enumerate(self.hold_card_flags)
+
+        for i in discarded_cards:
             if i[1] == 0:
-                self.dealtCards[i[0]] = self.deck.deck.pop(-1)
+                self.dealt_cards[i[0]] = self.deck.deck.pop(-1)
 
-        self.currentWinIndex = self.checkHand()
+        current_win_index = self.check_win_category()
 
-        if self.currentWinIndex == -1:
-            self.currentWin = 0.00
+        if current_win_index == -1:
+            self.current_win = 0.00
         else:
-            self.currentWin = self.winTables.get(self.betLevels[self.betLevel])[self.currentWinIndex]
+            self.current_win = \
+                self.win_tables.get(self.bet_levels[self.bet_level])[current_win_index]
 
-        self.holdCards = [0, 0, 0, 0, 0]
+        self.hold_card_flags = [0, 0, 0, 0, 0]
 
-        self.isInitialDeal = True
+        self.is_initial_deal = True
 
     def hold(self, index):
-        if not self.isInitialDeal:
-            if self.holdCards[index] == 0:
-                self.holdCards[index] = 1
+        """Change hold flag of card at given index
+        from 0 to 1 or from 1 to 0 to indicate hold state."""
+        if not self.is_initial_deal:
+            if self.hold_card_flags[index] == 0:
+                self.hold_card_flags[index] = 1
             else:
-                self.holdCards[index] = 0
+                self.hold_card_flags[index] = 0
 
-    def prepHand(self):
-        # Create copy of dealtCards to keep GUI card updates intact
-        self.handToCheck = self.dealtCards.copy()
-        self.jokers = []
+    def prep_hand_for_checking(self):
+        """Destructure the final hand to lists of jokers, values
+        and suits. Return lists for the check_win_category function."""
+        # Create copy of dealt_cards to keep GUI card updates intact.
+        hand_to_check = self.dealt_cards.copy()
 
-        # Split cards to value and suit for processing sublists
-        for i in range(len(self.handToCheck)):
-            if self.handToCheck[i] != "Joker":
-                self.card = [self.handToCheck[i][:-1], self.handToCheck[i][-1:]]
-                self.handToCheck[i] = self.card
+        jokers = []
+        values = []
+        suits = []
 
-        # Remove Joker from checked hand because it doesn't have value or suit
-        if "Joker" in self.handToCheck:
-            index = self.handToCheck.index("Joker")
-            self.jokers.append(self.handToCheck.pop(index))
+        # Split cards to value and suit for processing sublists.
+        for i in range(len(hand_to_check)):
+            if hand_to_check[i] != "Joker":
+                card = [hand_to_check[i][:-1], hand_to_check[i][-1:]]
+                hand_to_check[i] = card
 
-        self.values = []
-        self.suites = []
+        # Remove Joker from checked hand because it doesn't have value or suit.
+        if "Joker" in hand_to_check:
+            index = hand_to_check.index("Joker")
+            jokers.append(hand_to_check.pop(index))
 
-        for i in self.handToCheck:
-            self.values.append(i[0])
-            self.suites.append(i[1])
+        for i in hand_to_check:
+            values.append(i[0])
+            suits.append(i[1])
 
-        # Values converted to integers for determining straights
-        valueMap = {"J": 11, "Q": 12, "K": 13, "A1": 1, "A2": 14}
+        # Map face values to integers for determining straights.
+        face_value_map = {"J": 11, "Q": 12, "K": 13, "A1": 1, "A2": 14}
 
-        for i in range(len(self.values)):
-            self.numberCheck = self.values[i].isnumeric()
-            if self.numberCheck:
-                self.values[i] = int(self.values[i])
-            elif self.values[i] != "A":
-                self.values[i] = valueMap.get(self.values[i])
+        for i in range(len(values)):
+            number_check = values[i].isnumeric()
+            if number_check:
+                values[i] = int(values[i])
+            elif values[i] != "A":
+                values[i] = face_value_map.get(values[i])
 
-        # Ace can be 1 or 14, value determined by other cards and possible Jokers
-        for i in self.values:
+        # Ace can be 1 or 14, value determined by other cards.
+        for i in values:
             if i == "A":
-                index = self.values.index("A")
-                lowerStraight = [2, 3, 4]
-                if any(i in self.values for i in lowerStraight):
-                    self.values[index] = valueMap.get("A1")
+                index = values.index("A")
+                lower_straight = [2, 3, 4]
+                if any(i in values for i in lower_straight):
+                    values[index] = face_value_map.get("A1")
                 else:
-                    self.values[index] = valueMap.get("A2")
+                    values[index] = face_value_map.get("A2")
 
-        self.values.sort()
+        values.sort()
 
-    def checkHand(self):
-        """Checks the prepared final hand and returns winTable index according to possible win"""
-        self.prepHand()
+        return jokers, values, suits
 
-        uniqueValues = set()
-        uniqueSuits = set()
+    def check_win_category(self):
+        """Check the final hand and return win_table index
+        according to win category. Return -1 for no win."""
+        jokers, values, suits = self.prep_hand_for_checking()
 
-        for i in self.values:
-            uniqueValues.add(i)
+        unique_values = set()
+        unique_suits = set()
 
-        for i in self.suites:
-            uniqueSuits.add(i)
+        for i in values:
+            unique_values.add(i)
 
-        # Counts are checked against length of values list, because possible jokers are removed from that lists
-        # and so the possible jokers will always complete the hands accordingly
+        for i in suits:
+            unique_suits.add(i)
+
+        # Check counts against value list length. Possible jokers are removed from it
+        # and therefore jokers will always complete the hands accordingly.
 
         # 1. Five-of-a-kind
-        for i in uniqueValues:
-            if self.values.count(i) == len(self.values):
+        for i in unique_values:
+            if values.count(i) == len(values):
                 return 0
 
         # 2. Straight Flush
-        if len(uniqueValues) == len(self.values) and len(uniqueSuits) == 1: # Every card must be unique value and same suit
-            if len(self.values) == 5 and self.values[-1] - self.values[0] == 4: # Five cards, sorted highest and lowest value difference of 4
+        # Every card must be unique value and same suit.
+        if len(unique_values) == len(values) and len(unique_suits) == 1:
+            # Five cards, highest and lowest value difference of 4.
+            if len(values) == 5 and values[-1] - values[0] == 4:
                 return 1
-            elif len(self.values) == 4 and self.values[-1] - self.values[0] == 4: # Four cards, sorted highest and lowest value difference of 4, joker completes middle
+            # Four cards, highest and lowest value difference of 4, joker completes middle.
+            elif len(values) == 4 and values[-1] - values[0] == 4:
                 return 1
-            elif len(self.values) == 4 and self.values[-1] - self.values[0] + len(self.jokers) == 4: # Four cards, sorted highest and lowest value difference of 3, joker completes either end
+            # Four cards, highest and lowest value difference of 3, joker completes either end.
+            elif len(values) == 4 and values[-1] - values[0] + len(jokers) == 4:
                 return 1
 
         # 3. Four-of-a-kind
-        for i in uniqueValues:
-            if self.values.count(i) == len(self.values) - 1: # By subtracting one from the len of values we account for possible jokers
+        for i in unique_values:
+            # Account for possible jokers by subtracting one from the values length.
+            if values.count(i) == len(values) - 1:
                 return 2
 
         # 4. Full house
-        if len(uniqueValues) == 2: # Four-of-a-kind is already checked, if there are only two distinct values it must be full house
+        # Four-of-a-kind already checked. If there are only two distinct values, it is full house.
+        if len(unique_values) == 2:
             return 3
 
         # 5. Flush
-        if len(uniqueSuits) == 1: 
+        if len(unique_suits) == 1:
             return 4
 
         # 6. Straight
-        if len(uniqueValues) == len(self.values): # Every card must be unique value
-            if len(self.values) == 5 and self.values[-1] - self.values[0] == 4: # Five cards, sorted highest and lowest value difference of 4
+        # Every card must be of unique value.
+        if len(unique_values) == len(values):
+            # Five cards, highest and lowest value difference of 4.
+            if len(values) == 5 and values[-1] - values[0] == 4:
                 return 5
-            elif len(self.values) == 4 and self.values[-1] - self.values[0] == 4: # Four cards, sorted highest and lowest value difference of 4, joker completes middle
+            # Four cards, highest and lowest value difference of 4, joker completes middle.
+            elif len(values) == 4 and values[-1] - values[0] == 4:
                 return 5
-            elif len(self.values) == 4 and self.values[-1] - self.values[0] + len(self.jokers) == 4: # Four cards, sorted highest and lowest value difference of 3, joker completes either end
+            # Four cards, highest and lowest value difference of 3, joker completes either end.
+            elif len(values) == 4 and values[-1] - values[0] + len(jokers) == 4:
                 return 5
 
         # 7. Three-of-a-kind
-        for i in uniqueValues:
-            if self.values.count(i) == len(self.values) - 2: # By subtracting two from the len of values we account for possible jokers
+        for i in unique_values:
+            # Account for possible jokers by subtracting two from the values length.
+            if values.count(i) == len(values) - 2:
                 return 6
 
         # 8. Two pairs
-        if len(uniqueValues) == 3: # After all the other checks three distinct values leaves two pairs
+        # After all the other checks three distinct values leaves two pairs.
+        if len(unique_values) == 3:
             return 7
 
-        # No win
+        # 9. No win
         return -1
 
     def double(self):
         """Double current win and deal one random card from
         newly built and shuffled card deck."""
-        self.doublingActive = True
-        self.currentWin *= 2
+        self.is_doubling_active = True
+        self.current_win *= 2
 
-        self.deck.buildDeck()
+        self.deck.build_deck()
         self.deck.shuffle()
 
-        self.dealtCards = ["empty" for i in range(5)]
-        self.dealtCards[2] = self.deck.deck.pop(-1)
+        self.dealt_cards = ["empty" for i in range(5)]
+        self.dealt_cards[2] = self.deck.deck.pop(-1)
 
-    def checkDoubling(self, doubleChoice):
+    def check_doubling_result(self, double_choice):
         """Return True for succesfull doubling if doubling card is
         Joker or in double choice from GUI. Return False if not."""
-        self.doublingActive = False
+        self.is_doubling_active = False
 
-        if self.dealtCards[2][:-1] in doubleChoice:
+        if self.dealt_cards[2][:-1] in double_choice:
             return True
-        elif self.dealtCards[2] == "Joker":
+        elif self.dealt_cards[2] == "Joker":
             return True
 
-        self.currentWin = 0.0
+        self.current_win = 0.0
 
         return False
 
-    def collectWin(self):
-        self.winnings += self.currentWin
-        self.currentWin = 0.0
+    def collect_current_win(self):
+        """Transfer current win to overall winnings."""
+        self.winnings += self.current_win
+        self.current_win = 0.0
