@@ -59,6 +59,11 @@ class PokerGUI(tk.Tk):
         self.fourth_card_label.configure(image=self.fourth_card)
         self.fifth_card_label.configure(image=self.fifth_card)
 
+    def update_drawn_cards(self):
+        """Load new card images and update GUI labels with them."""
+        self.load_card_images()
+        self.update_card_labels()
+
     def update_hold_labels(self, index):
         """Update GUI hold card label visibility status."""
         hold_labels = {
@@ -83,12 +88,116 @@ class PokerGUI(tk.Tk):
         self.bottom_bar.itemconfigure(self.fifth_card_hold_label_window, state="hidden")
 
     def winning_hand_view(self):
-        """Update GUI to show winning hand view with current win and doubling question."""
+        """Update GUI to show winning hand view."""
         if self.game.current_win > 0:
+            self.update_drawn_cards()
+
             self.bottom_bar.configure(bg="DeepPink3")
-            self.bottom_bar.itemconfigure(self.double_question_window, state="normal")
-            self.bottom_bar.itemconfigure(self.current_win_window, state="normal")
+            self.bottom_bar.coords(self.current_win_window, 600, 18)
             self.current_win.set("{:.2f}".format(self.game.current_win))
+            self.bottom_bar.itemconfigure(self.current_win_window, state="normal")
+            self.bottom_bar.itemconfigure(self.double_question_window, state="normal")
+            self.bottom_bar.itemconfigure(self.active_doubling_window, state="hidden")
+
+    def no_win_view(self):
+        """Update GUI to show losing hand view."""
+        self.update_drawn_cards()
+
+        self.bottom_bar.configure(bg="snow4")
+        self.bottom_bar.coords(self.current_win_window, 600, 18)
+        self.current_win.set("{:.2f}".format(self.game.current_win))
+        self.bottom_bar.itemconfigure(self.current_win_window, state="hidden")
+        self.bottom_bar.itemconfigure(self.double_question_window, state="hidden")
+        self.bottom_bar.itemconfigure(self.active_doubling_window, state="hidden")
+
+    def active_doubling_view(self):
+        """Update GUI to show active doubling view."""
+        self.update_drawn_cards()
+
+        self.bottom_bar.coords(self.current_win_window, 270, 18)
+        self.current_win.set("{:.2f}".format(self.game.current_win))
+        self.bottom_bar.itemconfigure(self.double_question_window, state="hidden")
+        self.bottom_bar.itemconfigure(self.active_doubling_window, state="normal")
+
+    def after_doubling_view(self, double_win):
+        """Update GUI to show either win or no win view after
+        doubling based on the double_win result."""
+        self.update_drawn_cards()
+
+        if double_win:
+            self.winning_hand_view()
+        else:
+            self.no_win_view()
+
+    def change_bet(self):
+        """Event handler for bet button. Run change bet function
+        from game module and update GUI accordingly."""
+        self.game.change_bet()
+
+        self.bet.set("Bet {:.2f}".format(self.game.bet_levels[self.game.bet_level]))
+        self.winning_table.set(self.game.change_win_table())
+
+    def deal(self):
+        """Event handler for deal button. Run deal function from game
+        module and update GUI elements for changed cards and possible
+        winning hand view."""
+        if self.game.current_win == 0:
+            self.game.deal()
+            self.clear_hold_labels()
+
+        if self.game.current_win > 0:
+            self.winning_hand_view()
+        else:
+            self.no_win_view()
+
+    def hold(self, card_index):
+        """Event handler for hold buttons. Change hold status of the
+        card at given card index and update GUI accordingly."""
+        self.game.hold(card_index)
+        self.update_hold_labels(card_index)
+
+    def activate_doubling(self):
+        """Event handler for double button. Run doubling function from
+        game module and update GUI elements to active doubling view."""
+        if not self.game.is_doubling_active and self.game.current_win > 0:
+            self.game.double()
+            self.active_doubling_view()
+
+    def select_low(self):
+        """Event handler for low button. Run doubling result check
+        from game module with low card range selection and update
+        GUI according to doubling result."""
+        if self.game.is_doubling_active:
+            double_choice = ["A", "2", "3", "4", "5", "6"]
+
+            double_win = self.game.check_doubling_result(double_choice)
+
+            self.after_doubling_view(double_win)
+
+            #self.update_drawn_cards()
+
+            #if double_win:
+            #    self.winning_hand_view()
+            #else:
+            #    self.no_win_view()
+
+    def select_high(self):
+        """Event handler for high button. Run doubling result check
+        from game module with high card range selection and update
+        GUI according to doubling result."""
+        if self.game.is_doubling_active:
+            double_choice = ["8", "9", "10", "J", "Q", "K"]
+
+            double_win = self.game.check_doubling_result(double_choice)
+
+            self.after_doubling_view(double_win)
+
+            #self.update_drawn_cards()
+
+            #if double_win:
+            #    self.winning_hand_view()
+            #else:
+            #    self.no_win_view()
 
     def collect_current_win(self):
         """Event handler for collect button. Collect current win with
@@ -102,9 +211,7 @@ class PokerGUI(tk.Tk):
             win_update -= decrement
             self.after(250, self.transfer_animation_step(i, win_update, decrement))
 
-        self.bottom_bar.configure(bg="snow4")
-        self.bottom_bar.itemconfigure(self.double_question_window, state="hidden")
-        self.bottom_bar.itemconfigure(self.current_win_window, state="hidden")
+        self.no_win_view()
 
     def transfer_animation_step(self, i, win_update, decrement):
         """Update the GUI elements for current win
@@ -113,73 +220,6 @@ class PokerGUI(tk.Tk):
         # Occasional final result is -0.00, hence abs().
         self.current_win.set("{:.2f}".format(abs(win_update)))
         self.update()
-
-    def deal(self):
-        """Event handler for deal button. Update GUI elements to show changed
-        cards and possible winning hand view. Run deal function from game module."""
-        if self.game.current_win == 0:
-            self.game.deal()
-
-            self.load_card_images()
-            self.update_card_labels()
-            self.clear_hold_labels()
-            self.winning_hand_view()
-
-    def activate_doubling(self):
-        """Event handler for double button. Update GUI elements to active
-        doubling view and run doubling function from game module."""
-        if self.game.is_initial_deal and self.game.current_win > 0:
-            self.game.double()
-            self.load_card_images()
-            self.update_card_labels()
-            self.bottom_bar.itemconfigure(self.double_question_window, state="hidden")
-            self.bottom_bar.itemconfigure(self.active_doubling_window, state="normal")
-            self.bottom_bar.coords(self.current_win_window, 270, 18)
-            self.current_win.set("{:.2f}".format(self.game.current_win))
-
-    def select_low(self):
-        """Event handler for low button. Run doubling result check from game module
-        with low card range selection and update GUI according to doubling result."""
-        if self.game.is_doubling_active:
-            double_choice = ["A", "2", "3", "4", "5", "6"]
-
-            double_win = self.game.check_doubling_result(double_choice)
-
-            self.load_card_images()
-            self.update_card_labels()
-
-            if double_win:
-                self.bottom_bar.coords(self.current_win_window, 600, 18)
-                self.bottom_bar.itemconfigure(self.active_doubling_window, state="hidden")
-                self.winning_hand_view()
-            else:
-                self.bottom_bar.configure(bg="snow4")
-                self.bottom_bar.itemconfigure(self.active_doubling_window, state="hidden")
-                self.bottom_bar.coords(self.current_win_window, 600, 18)
-                self.bottom_bar.itemconfigure(self.current_win_window, state="hidden")
-                self.current_win.set("{:.2f}".format(self.game.current_win))
-
-    def select_high(self):
-        """Event handler for high button. Run doubling result check from game module
-        with high card range selection and update GUI according to doubling result."""
-        if self.game.is_doubling_active:
-            double_choice = ["8", "9", "10", "J", "Q", "K"]
-
-            double_win = self.game.check_doubling_result(double_choice)
-
-            self.load_card_images()
-            self.update_card_labels()
-
-            if double_win:
-                self.bottom_bar.coords(self.current_win_window, 600, 18)
-                self.bottom_bar.itemconfigure(self.active_doubling_window, state="hidden")
-                self.winning_hand_view()
-            else:
-                self.bottom_bar.configure(bg="snow4")
-                self.bottom_bar.itemconfigure(self.active_doubling_window, state="hidden")
-                self.bottom_bar.coords(self.current_win_window, 600, 18)
-                self.bottom_bar.itemconfigure(self.current_win_window, state="hidden")
-                self.current_win.set("{:.2f}".format(self.game.current_win))
 
     def create_layout(self):
         """Create the tkinter GUI layout for the PokerGUI class."""
@@ -277,27 +317,27 @@ class PokerGUI(tk.Tk):
         # Buttons
         self.first_card_hold_button = tk.Button(
             self.button_area, bg="red3", activebackground="red4", font=("Courier", 20),
-            textvariable=self.hold_button, command=lambda: [self.game.hold(0), self.update_hold_labels(0)]
+            textvariable=self.hold_button, command=lambda: [self.hold(0)]
         )
         self.second_card_hold_button = tk.Button(
             self.button_area, bg="red3", activebackground="red4", font=("Courier", 20),
-            textvariable=self.hold_button, command=lambda: [self.game.hold(1), self.update_hold_labels(1)]
+            textvariable=self.hold_button, command=lambda: [self.hold(1)]
         )
         self.third_card_hold_button = tk.Button(
             self.button_area, bg="red3", activebackground="red4", font=("Courier", 20),
-            textvariable=self.hold_button, command=lambda: [self.game.hold(2), self.update_hold_labels(2)]
+            textvariable=self.hold_button, command=lambda: [self.hold(2)]
         )
         self.fourth_card_hold_button = tk.Button(
             self.button_area, bg="red3", activebackground="red4", font=("Courier", 20),
-            textvariable=self.hold_button, command=lambda: [self.game.hold(3), self.update_hold_labels(3)]
+            textvariable=self.hold_button, command=lambda: [self.hold(3)]
         )
         self.fifth_card_hold_button = tk.Button(
             self.button_area, bg="red3", activebackground="red4", font=("Courier", 20),
-            textvariable=self.hold_button, command=lambda: [self.game.hold(4), self.update_hold_labels(4)]
+            textvariable=self.hold_button, command=lambda: [self.hold(4)]
         )
         self.bet_button = tk.Button(
-            self.button_area, bg="blue", activebackground="medium blue", font=("Courier", 20),
-            text="BET", command=lambda: [self.game.change_bet(), self.bet.set("Bet {:.2f}".format(self.game.bet_levels[self.game.bet_level])), self.winning_table.set(self.game.change_win_table())]
+            self.button_area, bg="blue", activebackground="medium blue",
+            font=("Courier", 20), text="BET", command=lambda: [self.change_bet()]
         )
         self.collect_button = tk.Button(
             self.button_area, bg="yellow2", activebackground="yellow3",
