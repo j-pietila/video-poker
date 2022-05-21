@@ -174,13 +174,6 @@ class PokerGUI(tk.Tk):
 
             self.after_doubling_view(double_win)
 
-            #self.update_drawn_cards()
-
-            #if double_win:
-            #    self.winning_hand_view()
-            #else:
-            #    self.no_win_view()
-
     def select_high(self):
         """Event handler for high button. Run doubling result check
         from game module with high card range selection and update
@@ -191,13 +184,6 @@ class PokerGUI(tk.Tk):
             double_win = self.game.check_doubling_result(double_choice)
 
             self.after_doubling_view(double_win)
-
-            #self.update_drawn_cards()
-
-            #if double_win:
-            #    self.winning_hand_view()
-            #else:
-            #    self.no_win_view()
 
     def collect_current_win(self):
         """Event handler for collect button. Collect current win with
