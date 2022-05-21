@@ -8,6 +8,10 @@ __*__
 # Text files
 *.doc
 *.txt
+!requirements.txt
 
 # Zipped data
 *.zip
+
+# Python virtual environment
+/venv
