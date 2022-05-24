@@ -23,32 +23,30 @@ class PokerGUI(tk.Tk):
         """Load card image files for dealt cards based on the
         dealt_cards list in the game module."""
         self.open_card_stack = Image.open("./PlayingCards/cardBack.png")
-        self.open_card_stack = self.open_card_stack.resize((140, 215), Image.ANTIALIAS)
+        self.open_card_stack = self.open_card_stack.resize((140, 215))
         self.card_stack = ImageTk.PhotoImage(self.open_card_stack)
 
-        self.open_first_card = Image.open("./PlayingCards/{}.png".format(self.game.dealt_cards[0]))
-        self.open_first_card = self.open_first_card.resize((140, 215), Image.ANTIALIAS)
+        self.open_first_card = Image.open(f"./PlayingCards/{self.game.dealt_cards[0]}.png")
+        self.open_first_card = self.open_first_card.resize((140, 215))
         self.first_card = ImageTk.PhotoImage(self.open_first_card)
 
-        self.open_second_card = Image.open("./PlayingCards/{}.png".format(self.game.dealt_cards[1]))
-        self.open_second_card = self.open_second_card.resize((140, 215), Image.ANTIALIAS)
+        self.open_second_card = Image.open(f"./PlayingCards/{self.game.dealt_cards[1]}.png")
+        self.open_second_card = self.open_second_card.resize((140, 215))
         self.second_card = ImageTk.PhotoImage(self.open_second_card)
 
         if self.game.is_doubling_active:
-            self.open_third_card = \
-                Image.open("./PlayingCards/cardBack.png")
+            self.open_third_card = Image.open("./PlayingCards/cardBack.png")
         else:
-            self.open_third_card = \
-                Image.open("./PlayingCards/{}.png".format(self.game.dealt_cards[2]))
-        self.open_third_card = self.open_third_card.resize((140, 215), Image.ANTIALIAS)
+            self.open_third_card = Image.open(f"./PlayingCards/{self.game.dealt_cards[2]}.png")
+        self.open_third_card = self.open_third_card.resize((140, 215))
         self.third_card = ImageTk.PhotoImage(self.open_third_card)
 
-        self.open_fourth_card = Image.open("./PlayingCards/{}.png".format(self.game.dealt_cards[3]))
-        self.open_fourth_card = self.open_fourth_card.resize((140, 215), Image.ANTIALIAS)
+        self.open_fourth_card = Image.open(f"./PlayingCards/{self.game.dealt_cards[3]}.png")
+        self.open_fourth_card = self.open_fourth_card.resize((140, 215))
         self.fourth_card = ImageTk.PhotoImage(self.open_fourth_card)
 
-        self.open_fifth_card = Image.open("./PlayingCards/{}.png".format(self.game.dealt_cards[4]))
-        self.open_fifth_card = self.open_fifth_card.resize((140, 215), Image.ANTIALIAS)
+        self.open_fifth_card = Image.open(f"./PlayingCards/{self.game.dealt_cards[4]}.png")
+        self.open_fifth_card = self.open_fifth_card.resize((140, 215))
         self.fifth_card = ImageTk.PhotoImage(self.open_fifth_card)
 
     def update_card_labels(self):
@@ -94,7 +92,7 @@ class PokerGUI(tk.Tk):
 
             self.bottom_bar.configure(bg="DeepPink3")
             self.bottom_bar.coords(self.current_win_window, 600, 18)
-            self.current_win.set("{:.2f}".format(self.game.current_win))
+            self.current_win.set(f"{self.game.current_win:.2f}")
             self.bottom_bar.itemconfigure(self.current_win_window, state="normal")
             self.bottom_bar.itemconfigure(self.double_question_window, state="normal")
             self.bottom_bar.itemconfigure(self.active_doubling_window, state="hidden")
@@ -105,7 +103,7 @@ class PokerGUI(tk.Tk):
 
         self.bottom_bar.configure(bg="snow4")
         self.bottom_bar.coords(self.current_win_window, 600, 18)
-        self.current_win.set("{:.2f}".format(self.game.current_win))
+        self.current_win.set(f"{self.game.current_win:.2f}")
         self.bottom_bar.itemconfigure(self.current_win_window, state="hidden")
         self.bottom_bar.itemconfigure(self.double_question_window, state="hidden")
         self.bottom_bar.itemconfigure(self.active_doubling_window, state="hidden")
@@ -115,7 +113,7 @@ class PokerGUI(tk.Tk):
         self.update_drawn_cards()
 
         self.bottom_bar.coords(self.current_win_window, 270, 18)
-        self.current_win.set("{:.2f}".format(self.game.current_win))
+        self.current_win.set(f"{self.game.current_win:.2f}")
         self.bottom_bar.itemconfigure(self.double_question_window, state="hidden")
         self.bottom_bar.itemconfigure(self.active_doubling_window, state="normal")
 
@@ -134,7 +132,7 @@ class PokerGUI(tk.Tk):
         from game module and update GUI accordingly."""
         self.game.change_bet()
 
-        self.bet.set("Bet {:.2f}".format(self.game.bet_levels[self.game.bet_level]))
+        self.bet.set(f"Bet {self.game.bet_levels[self.game.bet_level]:.2f}")
         self.winning_table.set(self.game.change_win_table())
 
     def deal(self):
@@ -202,9 +200,9 @@ class PokerGUI(tk.Tk):
     def transfer_animation_step(self, i, win_update, decrement):
         """Update the GUI elements for current win
         transfer animation step and update the view."""
-        self.wins.set("Wins {:.2f}".format(self.game.winnings - (i * decrement)))
-        # Occasional final result is -0.00, hence abs().
-        self.current_win.set("{:.2f}".format(abs(win_update)))
+        self.wins.set(f"Wins {self.game.winnings - (i * decrement):.2f}")
+        # Occasional final result is -0.00, hence abs()
+        self.current_win.set(f"{abs(win_update):.2f}")
         self.update()
 
     def create_layout(self):
@@ -222,15 +220,15 @@ class PokerGUI(tk.Tk):
         self.credits = tk.StringVar()
         self.credits.set("Credits 4.20")
         self.bet = tk.StringVar()
-        self.bet.set("Bet {:.2f}".format(self.game.bet_levels[self.game.bet_level]))
+        self.bet.set(f"Bet {self.game.bet_levels[self.game.bet_level]:.2f}")
         self.wins = tk.StringVar()
-        self.wins.set("Wins {:.2f}".format(self.game.winnings))
+        self.wins.set(f"Wins {self.game.winnings:.2f}")
 
         self.winning_table = tk.StringVar()
         self.winning_table.set(self.game.change_win_table())
 
         self.current_win = tk.StringVar()
-        self.current_win.set("{:.2f}".format(self.game.current_win))
+        self.current_win.set(f"{self.game.current_win:.2f}")
 
         self.hold_button = tk.StringVar()
         self.hold_button.set("HOLD")
