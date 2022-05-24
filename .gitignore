@@ -1,9 +1,8 @@
 # Bytecode cache
 __*__
 
-# Project picture files
-*.png
-*.xcf
+# Project concept images
+/Concept\ Images
 
 # Text files
 *.doc
