@@ -16,51 +16,48 @@ class PokerGUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.game = PokerGame()
-        self.load_card_images()
+        self.dealt_hand = self.load_card_images(self.game.dealt_cards)
         self.create_layout()
+    
+    @staticmethod
+    def resize_and_create_image_object(image_path: str) -> ImageTk.PhotoImage:
+        """Resize and create image object for tkinter."""
+        card = Image.open(image_path)
+        card = card.resize((140, 215))
+        return ImageTk.PhotoImage(card)
 
-    def load_card_images(self):
-        """Load card image files for dealt cards based on the
-        dealt_cards list in the game module."""
-        self.open_card_stack = Image.open("./PlayingCards/cardBack.png")
-        self.open_card_stack = self.open_card_stack.resize((140, 215))
-        self.card_stack = ImageTk.PhotoImage(self.open_card_stack)
+    def load_card_images(self, dealt_cards: list[str]) -> list[ImageTk.PhotoImage]:
+        """
+        Load card image files for dealt cards based on
+        the dealt_cards list in the game module.
+        """
+        self.card_stack = self.resize_and_create_image_object("./PlayingCards/cardBack.png")
 
-        self.open_first_card = Image.open(f"./PlayingCards/{self.game.dealt_cards[0]}.png")
-        self.open_first_card = self.open_first_card.resize((140, 215))
-        self.first_card = ImageTk.PhotoImage(self.open_first_card)
+        dealt_hand = []
 
-        self.open_second_card = Image.open(f"./PlayingCards/{self.game.dealt_cards[1]}.png")
-        self.open_second_card = self.open_second_card.resize((140, 215))
-        self.second_card = ImageTk.PhotoImage(self.open_second_card)
+        for i in range(5):
+            # Third card is the doubling card and not shown when doubling
+            if i == 2 and self.game.is_doubling_active:
+                dealt_hand.append(self.resize_and_create_image_object(
+                "./PlayingCards/cardBack.png"))
+            else:
+                dealt_hand.append(self.resize_and_create_image_object(
+                    f"./PlayingCards/{dealt_cards[i]}.png"))
 
-        if self.game.is_doubling_active:
-            self.open_third_card = Image.open("./PlayingCards/cardBack.png")
-        else:
-            self.open_third_card = Image.open(f"./PlayingCards/{self.game.dealt_cards[2]}.png")
-        self.open_third_card = self.open_third_card.resize((140, 215))
-        self.third_card = ImageTk.PhotoImage(self.open_third_card)
+        return dealt_hand
 
-        self.open_fourth_card = Image.open(f"./PlayingCards/{self.game.dealt_cards[3]}.png")
-        self.open_fourth_card = self.open_fourth_card.resize((140, 215))
-        self.fourth_card = ImageTk.PhotoImage(self.open_fourth_card)
+    def update_card_labels(self, cards: list[ImageTk.PhotoImage]) -> None:
+        """Update tkinter labels with the dealt cards images."""
+        self.first_card_label.configure(image=cards[0])
+        self.second_card_label.configure(image=cards[1])
+        self.third_card_label.configure(image=cards[2])
+        self.fourth_card_label.configure(image=cards[3])
+        self.fifth_card_label.configure(image=cards[4])
 
-        self.open_fifth_card = Image.open(f"./PlayingCards/{self.game.dealt_cards[4]}.png")
-        self.open_fifth_card = self.open_fifth_card.resize((140, 215))
-        self.fifth_card = ImageTk.PhotoImage(self.open_fifth_card)
-
-    def update_card_labels(self):
-        """Update tkinter labels for the dealt cards."""
-        self.first_card_label.configure(image=self.first_card)
-        self.second_card_label.configure(image=self.second_card)
-        self.third_card_label.configure(image=self.third_card)
-        self.fourth_card_label.configure(image=self.fourth_card)
-        self.fifth_card_label.configure(image=self.fifth_card)
-
-    def update_drawn_cards(self):
+    def update_drawn_cards(self, dealt_cards: list[str]) -> None:
         """Load new card images and update GUI labels with them."""
-        self.load_card_images()
-        self.update_card_labels()
+        self.dealt_hand = self.load_card_images(dealt_cards)
+        self.update_card_labels(self.dealt_hand)
 
     def update_hold_labels(self, index):
         """Update GUI hold card label visibility status."""
@@ -88,7 +85,7 @@ class PokerGUI(tk.Tk):
     def winning_hand_view(self):
         """Update GUI to show winning hand view."""
         if self.game.current_win > 0:
-            self.update_drawn_cards()
+            self.update_drawn_cards(self.game.dealt_cards)
 
             self.bottom_bar.configure(bg="DeepPink3")
             self.bottom_bar.coords(self.current_win_window, 600, 18)
@@ -99,7 +96,7 @@ class PokerGUI(tk.Tk):
 
     def no_win_view(self):
         """Update GUI to show losing hand view."""
-        self.update_drawn_cards()
+        self.update_drawn_cards(self.game.dealt_cards)
 
         self.bottom_bar.configure(bg="snow4")
         self.bottom_bar.coords(self.current_win_window, 600, 18)
@@ -110,7 +107,7 @@ class PokerGUI(tk.Tk):
 
     def active_doubling_view(self):
         """Update GUI to show active doubling view."""
-        self.update_drawn_cards()
+        self.update_drawn_cards(self.game.dealt_cards)
 
         self.bottom_bar.coords(self.current_win_window, 270, 18)
         self.current_win.set(f"{self.game.current_win:.2f}")
@@ -120,7 +117,7 @@ class PokerGUI(tk.Tk):
     def after_doubling_view(self, double_win):
         """Update GUI to show either win or no win view after
         doubling based on the double_win result."""
-        self.update_drawn_cards()
+        self.update_drawn_cards(self.game.dealt_cards)
 
         if double_win:
             self.winning_hand_view()
@@ -257,19 +254,19 @@ class PokerGUI(tk.Tk):
         self.card_stack_label.image = self.card_stack
 
         self.first_card_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.first_card
+            self.middle_area, bg="blue4", image=self.dealt_hand[0]
         )
         self.second_card_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.second_card
+            self.middle_area, bg="blue4", image=self.dealt_hand[1]
         )
         self.third_card_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.third_card
+            self.middle_area, bg="blue4", image=self.dealt_hand[2]
         )
         self.fourth_card_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.fourth_card
+            self.middle_area, bg="blue4", image=self.dealt_hand[3]
         )
         self.fifth_card_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.fifth_card
+            self.middle_area, bg="blue4", image=self.dealt_hand[4]
         )
 
         self.first_card_hold_label = tk.Label(
