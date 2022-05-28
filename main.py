@@ -4,6 +4,7 @@ main.py: Main program file for Video Poker containing the tkinter GUI class
 @author: Joonas Pietilä
 """
 
+import time
 import tkinter as tk
 
 from PIL import ImageTk, Image
@@ -46,19 +47,6 @@ class PokerGUI(tk.Tk):
 
         return dealt_hand
 
-    def update_card_labels(self, cards: list[ImageTk.PhotoImage]) -> None:
-        """Update tkinter labels with the dealt cards images."""
-        self.first_card_label.configure(image=cards[0])
-        self.second_card_label.configure(image=cards[1])
-        self.third_card_label.configure(image=cards[2])
-        self.fourth_card_label.configure(image=cards[3])
-        self.fifth_card_label.configure(image=cards[4])
-
-    def update_drawn_cards(self, dealt_cards: list[str]) -> None:
-        """Load new card images and update GUI labels with them."""
-        self.dealt_hand = self.load_card_images(dealt_cards)
-        self.update_card_labels(self.dealt_hand)
-
     def update_hold_labels(self, index):
         """Update GUI hold card label visibility status."""
         hold_labels = {
@@ -85,8 +73,6 @@ class PokerGUI(tk.Tk):
     def winning_hand_view(self):
         """Update GUI to show winning hand view."""
         if self.game.current_win > 0:
-            self.update_drawn_cards(self.game.dealt_cards)
-
             self.bottom_bar.configure(bg="DeepPink3")
             self.bottom_bar.coords(self.current_win_window, 600, 18)
             self.current_win.set(f"{self.game.current_win:.2f}")
@@ -96,8 +82,6 @@ class PokerGUI(tk.Tk):
 
     def no_win_view(self):
         """Update GUI to show losing hand view."""
-        self.update_drawn_cards(self.game.dealt_cards)
-
         self.bottom_bar.configure(bg="snow4")
         self.bottom_bar.coords(self.current_win_window, 600, 18)
         self.current_win.set(f"{self.game.current_win:.2f}")
@@ -107,8 +91,6 @@ class PokerGUI(tk.Tk):
 
     def active_doubling_view(self):
         """Update GUI to show active doubling view."""
-        self.update_drawn_cards(self.game.dealt_cards)
-
         self.bottom_bar.coords(self.current_win_window, 270, 18)
         self.current_win.set(f"{self.game.current_win:.2f}")
         self.bottom_bar.itemconfigure(self.double_question_window, state="hidden")
@@ -117,7 +99,7 @@ class PokerGUI(tk.Tk):
     def after_doubling_view(self, double_win):
         """Update GUI to show either win or no win view after
         doubling based on the double_win result."""
-        self.update_drawn_cards(self.game.dealt_cards)
+        # Doubling ending animations here
 
         if double_win:
             self.winning_hand_view()
@@ -137,8 +119,19 @@ class PokerGUI(tk.Tk):
         module and update GUI elements for changed cards and possible
         winning hand view."""
         if self.game.current_win == 0:
-            self.game.deal()
+            discarded_cards_indexes = self.game.deal()
             self.clear_hold_labels()
+
+        # Deal animations
+        # Running initial deal function sets initial deal flag to false
+        self.dealt_hand = self.load_card_images(self.game.dealt_cards)
+
+        if not self.game.is_initial_deal:
+            self.initial_deal_animation(self.dealt_hand)
+        else:
+            # additional deal animations here
+            # get discarded cards indexes for the additional_deal_animation
+            self.initial_deal_animation(self.dealt_hand)
 
         if self.game.current_win > 0:
             self.winning_hand_view()
@@ -156,6 +149,7 @@ class PokerGUI(tk.Tk):
         game module and update GUI elements to active doubling view."""
         if not self.game.is_doubling_active and self.game.current_win > 0:
             self.game.double()
+            # Doubling start animations here
             self.active_doubling_view()
 
     def select_low(self):
@@ -201,6 +195,55 @@ class PokerGUI(tk.Tk):
         # Occasional final result is -0.00, hence abs()
         self.current_win.set(f"{abs(win_update):.2f}")
         self.update()
+
+    @staticmethod
+    def get_coordinate_increments(
+        start_coords: tuple[int, int], end_coords: tuple[int, int], steps: int
+    ) -> tuple[int, int]:
+        """Return a tuple holding increment for x and y coordinates
+        for given amount of steps for the animation."""
+        x_range = end_coords[0] - start_coords[0]
+        y_range = end_coords[1] - start_coords[1]
+
+        x_increment = round(x_range / steps)
+        y_increment = round(y_range / steps)
+
+        return (x_increment, y_increment)
+
+    def update_dealt_card_position(self, x, y):
+        """Update card (x, y) position during the card deal animation."""
+        self.middle_area.move(self.card_in_transit, x, y)
+        self.update()
+
+    def animate_dealt_card(self, end_coords: tuple[int, int], steps: int) -> None:
+        """
+        Calculate increment to animate dealt card with n frames.
+        """
+        start_coords = (0, 0)
+        increments = self.get_coordinate_increments(start_coords, end_coords, steps)
+        frame_time_ms = round(220 / steps)
+
+        for _ in range(steps):
+            self.after(frame_time_ms, self.update_dealt_card_position(increments[0], increments[1]))
+
+        reset_x = increments[0] * steps * -1
+        reset_y = increments[1] * steps * -1
+
+        self.middle_area.move(self.card_in_transit, reset_x, reset_y)
+        self.update()
+
+    def initial_deal_animation(self, cards: list[ImageTk.PhotoImage]) -> None:
+        """Update tkinter labels with the dealt cards images."""
+        self.animate_dealt_card((0, 290), 10)
+        self.middle_area.itemconfig(self.first_card, image=cards[0])
+        self.animate_dealt_card((185, 290), 10)
+        self.middle_area.itemconfig(self.second_card, image=cards[1])
+        self.animate_dealt_card((370, 290), 10)
+        self.middle_area.itemconfig(self.third_card, image=cards[2])
+        self.animate_dealt_card((555, 290), 10)
+        self.middle_area.itemconfig(self.fourth_card, image=cards[3])
+        self.animate_dealt_card((740, 290), 10)
+        self.middle_area.itemconfig(self.fifth_card, image=cards[4])
 
     def create_layout(self):
         """Create the tkinter GUI layout for the PokerGUI class."""
@@ -248,26 +291,11 @@ class PokerGUI(tk.Tk):
             self.middle_area, bg="blue4", fg="DarkOrange2",
             font=("Courier", 19), textvariable=self.winning_table
         )
+
         self.card_stack_label = tk.Label(
             self.middle_area, bg="blue4", image=self.card_stack
         )
         self.card_stack_label.image = self.card_stack
-
-        self.first_card_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.dealt_hand[0]
-        )
-        self.second_card_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.dealt_hand[1]
-        )
-        self.third_card_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.dealt_hand[2]
-        )
-        self.fourth_card_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.dealt_hand[3]
-        )
-        self.fifth_card_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.dealt_hand[4]
-        )
 
         self.first_card_hold_label = tk.Label(
             self.bottom_bar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19)
@@ -341,6 +369,29 @@ class PokerGUI(tk.Tk):
             font=("Courier", 20), text="DEAL", command=lambda: [self.deal()]
         )
 
+        # Canvas images
+        self.card_stack_image = self.middle_area.create_image(
+            70, 45, anchor=tk.NW, image=self.card_stack
+        )
+        self.card_in_transit = self.middle_area.create_image(
+            70, 45, anchor=tk.NW, image=self.card_stack
+        )
+        self.first_card = self.middle_area.create_image(
+            70, 335, anchor=tk.NW, image=self.dealt_hand[0]
+        )
+        self.second_card = self.middle_area.create_image(
+            255, 335, anchor=tk.NW, image=self.dealt_hand[1]
+        )
+        self.third_card = self.middle_area.create_image(
+            440, 335, anchor=tk.NW, image=self.dealt_hand[2]
+        )
+        self.fourth_card = self.middle_area.create_image(
+            625, 335, anchor=tk.NW, image=self.dealt_hand[3]
+        )
+        self.fifth_card = self.middle_area.create_image(
+            810, 335, anchor=tk.NW, image=self.dealt_hand[4]
+        )
+
         # Canvas window objects
         self.credits_window = self.top_bar.create_window(
             20, 15, anchor=tk.NW, height=65, width=380, window=self.credits_label
@@ -354,24 +405,6 @@ class PokerGUI(tk.Tk):
 
         self.winning_table_window = self.middle_area.create_window(
             960, 40, anchor=tk.NE, height=235, width=800, window=self.winning_table_label
-        )
-        self.card_stack_window = self.middle_area.create_window(
-            70, 45, anchor=tk.NW, window=self.card_stack_label
-        )
-        self.first_card_window = self.middle_area.create_window(
-            70, 550, anchor=tk.SW, window=self.first_card_label
-        )
-        self.second_card_window = self.middle_area.create_window(
-            255, 550, anchor=tk.SW, window=self.second_card_label
-        )
-        self.third_card_window = self.middle_area.create_window(
-            440, 550, anchor=tk.SW, window=self.third_card_label
-        )
-        self.fourth_card_window = self.middle_area.create_window(
-            625, 550, anchor=tk.SW, window=self.fourth_card_label
-        )
-        self.fifth_card_window = self.middle_area.create_window(
-            810, 550, anchor=tk.SW, window=self.fifth_card_label
         )
 
         self.first_card_hold_label_window = self.bottom_bar.create_window(
