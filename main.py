@@ -119,7 +119,7 @@ class PokerGUI(tk.Tk):
         module and update GUI elements for changed cards and possible
         winning hand view."""
         if self.game.current_win == 0:
-            discarded_cards_indexes = self.game.deal()
+            discarded_cards_indexes, discarded_cards = self.game.deal()
             self.clear_hold_labels()
 
         # Deal animations
@@ -129,9 +129,8 @@ class PokerGUI(tk.Tk):
         if not self.game.is_initial_deal:
             self.initial_deal_animation(self.dealt_hand)
         else:
-            # additional deal animations here
-            # get discarded cards indexes for the additional_deal_animation
-            self.initial_deal_animation(self.dealt_hand)
+            self.additional_deal_animation(
+                self.dealt_hand, discarded_cards_indexes, discarded_cards)
 
         if self.game.current_win > 0:
             self.winning_hand_view()
@@ -217,7 +216,7 @@ class PokerGUI(tk.Tk):
 
     def animate_dealt_card(self, end_coords: tuple[int, int], steps: int) -> None:
         """
-        Calculate increment to animate dealt card with n frames.
+        Animate card deal from card stack to dealt card location.
         """
         start_coords = (0, 0)
         increments = self.get_coordinate_increments(start_coords, end_coords, steps)
@@ -233,7 +232,7 @@ class PokerGUI(tk.Tk):
         self.update()
 
     def initial_deal_animation(self, cards: list[ImageTk.PhotoImage]) -> None:
-        """Update tkinter labels with the dealt cards images."""
+        """Run initial deal animations."""
         self.animate_dealt_card((0, 290), 10)
         self.middle_area.itemconfig(self.first_card, image=cards[0])
         self.animate_dealt_card((185, 290), 10)
@@ -244,6 +243,63 @@ class PokerGUI(tk.Tk):
         self.middle_area.itemconfig(self.fourth_card, image=cards[3])
         self.animate_dealt_card((740, 290), 10)
         self.middle_area.itemconfig(self.fifth_card, image=cards[4])
+
+    def update_discarded_card_position(self, card, x, y):
+        """Update card (x, y) position during the card discard animation."""
+        self.middle_area.move(card, x, y)
+        self.update()
+
+    def discard_card_animation(self, card, steps: int) -> None:
+        """Run animation for discarding card through the bottom of the screen."""
+        increment = 40
+        frame_time_ms = round(220 / steps)
+
+        for _ in range(steps):
+            self.after(frame_time_ms, self.update_discarded_card_position(card, 0, increment))
+
+        empty_card = self.resize_and_create_image_object("./PlayingCards/empty.png")
+        self.middle_area.itemconfig(card, image=empty_card)
+
+        reset_y = increment * steps * -1       
+        self.middle_area.move(card, 0, reset_y)
+        self.update()
+
+    def additional_deal_animation(
+        self, cards: list[ImageTk.PhotoImage],
+        discarded_cards_indexes: list[int],
+        discarded_cards: list[str]
+    ) -> None:
+        """Run animations for discarded cards out of the screen and deal new ones."""
+        discarded_cards_images = []
+        dealt_card_end_coordinates = [(0, 290), (185, 290), (370, 290), (555, 290), (740, 290)]
+        dealt_cards = [
+            self.first_card, self.second_card, self.third_card, 
+            self.fourth_card, self.fifth_card
+        ]
+
+        # Update kept cards
+        for i in range(5):
+            if i not in discarded_cards_indexes:
+                self.middle_area.itemconfig(dealt_cards[i], image=cards[i])
+
+        # Recreate old images for the to be discarded cards
+        discarded = 0
+        for i in discarded_cards_indexes:
+            discarded_cards_images.append(self.resize_and_create_image_object(
+                f"./PlayingCards/{discarded_cards[discarded]}.png"))
+            discarded += 1
+
+        # Keep discarded cards with old images before discard animation
+        discarded = 0
+        for i in discarded_cards_indexes:
+            self.middle_area.itemconfig(dealt_cards[i], image=discarded_cards_images[discarded])
+            discarded += 1
+
+        # Run discard animation and update discarded cards with new ones
+        for i in discarded_cards_indexes:
+            self.discard_card_animation(dealt_cards[i], 8)
+            self.animate_dealt_card(dealt_card_end_coordinates[i], 10)
+            self.middle_area.itemconfig(dealt_cards[i], image=cards[i])
 
     def create_layout(self):
         """Create the tkinter GUI layout for the PokerGUI class."""
