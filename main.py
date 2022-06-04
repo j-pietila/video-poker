@@ -19,7 +19,7 @@ class PokerGUI(tk.Tk):
         self.game = PokerGame()
         self.dealt_hand = self.load_card_images(self.game.dealt_cards)
         self.create_layout()
-    
+
     @staticmethod
     def resize_and_create_image_object(image_path: str) -> ImageTk.PhotoImage:
         """Resize and create image object for tkinter."""
@@ -214,6 +214,15 @@ class PokerGUI(tk.Tk):
         self.middle_area.move(self.card_in_transit, x, y)
         self.update()
 
+    def reveal_initial_cards_animation(
+        self, dealt_cards, cards: list[ImageTk.PhotoImage]
+    ) -> None:
+        """Update dealt initial hand cards with their real face value images."""
+        for i, card in enumerate(dealt_cards):
+            self.middle_area.itemconfig(card, image=cards[i])
+            time.sleep(0.1)
+            self.update()
+
     def reveal_last_card_animation(self, increment: int, steps: int) -> int:
         """Run animation for revealing last card being dealt."""
         frame_time_ms = round(1200 / steps)
@@ -235,7 +244,7 @@ class PokerGUI(tk.Tk):
         """
         start_coords = (0, 0)
         increments = self.get_coordinate_increments(start_coords, end_coords, steps)
-        frame_time_ms = round(220 / steps)
+        frame_time_ms = round(200 / steps)
 
         for _ in range(steps):
             self.after(frame_time_ms, self.update_dealt_card_position(increments[0], increments[1]))
@@ -256,15 +265,22 @@ class PokerGUI(tk.Tk):
 
     def initial_deal_animation(self, cards: list[ImageTk.PhotoImage]) -> None:
         """Run initial deal animations."""
+        dealt_cards = [
+            self.first_card, self.second_card, self.third_card, self.fourth_card, self.fifth_card
+        ]
+
         self.animate_dealt_card((0, 290), 10)
-        self.middle_area.itemconfig(self.first_card, image=cards[0])
+        self.middle_area.itemconfig(dealt_cards[0], image=self.card_stack)
         self.animate_dealt_card((185, 290), 10)
-        self.middle_area.itemconfig(self.second_card, image=cards[1])
+        self.middle_area.itemconfig(dealt_cards[1], image=self.card_stack)
         self.animate_dealt_card((370, 290), 10)
-        self.middle_area.itemconfig(self.third_card, image=cards[2])
+        self.middle_area.itemconfig(dealt_cards[2], image=self.card_stack)
         self.animate_dealt_card((555, 290), 10)
-        self.middle_area.itemconfig(self.fourth_card, image=cards[3])
-        self.animate_dealt_card((740, 290), 10, self.fifth_card, cards[4])
+        self.middle_area.itemconfig(dealt_cards[3], image=self.card_stack)
+        self.animate_dealt_card((740, 290), 10)
+        self.middle_area.itemconfig(dealt_cards[4], image=self.card_stack)
+
+        self.reveal_initial_cards_animation(dealt_cards, cards)
 
     def update_discarded_card_position(self, card, x, y):
         """Update card (x, y) position during the card discard animation."""
@@ -282,7 +298,7 @@ class PokerGUI(tk.Tk):
         empty_card = self.resize_and_create_image_object("./PlayingCards/empty.png")
         self.middle_area.itemconfig(card, image=empty_card)
 
-        reset_y = increment * steps * -1       
+        reset_y = increment * steps * -1
         self.middle_area.move(card, 0, reset_y)
         self.update()
 
@@ -295,7 +311,7 @@ class PokerGUI(tk.Tk):
         discarded_cards_images = []
         dealt_card_end_coordinates = [(0, 290), (186, 290), (370, 290), (555, 290), (740, 290)]
         dealt_cards = [
-            self.first_card, self.second_card, self.third_card, 
+            self.first_card, self.second_card, self.third_card,
             self.fourth_card, self.fifth_card
         ]
 
@@ -321,13 +337,13 @@ class PokerGUI(tk.Tk):
         discarded = 1
         for i in discarded_cards_indexes:
             self.discard_card_animation(dealt_cards[i], 8)
-            
-            if discarded == len(discarded_cards_indexes):   
+
+            if discarded == len(discarded_cards_indexes):
                 self.animate_dealt_card(dealt_card_end_coordinates[i], 10, dealt_cards[i], cards[i])
             else:
                 self.animate_dealt_card(dealt_card_end_coordinates[i], 10)
                 self.middle_area.itemconfig(dealt_cards[i], image=cards[i])
-            
+
             discarded += 1
 
     def create_layout(self):
