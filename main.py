@@ -112,7 +112,10 @@ class PokerGUI(tk.Tk):
         self.game.change_bet()
 
         self.bet.set(f"Bet {self.game.bet_levels[self.game.bet_level]:.2f}")
-        self.winning_table.set(self.game.change_win_table())
+        self.middle_area.itemconfigure(
+            self.winning_table_text,
+            text=self.game.change_win_table()
+        )
 
     def deal(self):
         """Event handler for deal button. Run deal function from game
@@ -239,6 +242,7 @@ class PokerGUI(tk.Tk):
         """
         increments = self.get_coordinate_increments(end_coords, steps)
         frame_time_ms = round(200 / steps)
+        self.middle_area.tag_raise(self.card_in_transit)
 
         for _ in range(steps):
             self.after(frame_time_ms, self.update_dealt_card_position(increments[0], increments[1]))
@@ -361,9 +365,6 @@ class PokerGUI(tk.Tk):
         self.wins = tk.StringVar()
         self.wins.set(f"Wins {self.game.winnings:.2f}")
 
-        self.winning_table = tk.StringVar()
-        self.winning_table.set(self.game.change_win_table())
-
         self.current_win = tk.StringVar()
         self.current_win.set(f"{self.game.current_win:.2f}")
 
@@ -382,11 +383,6 @@ class PokerGUI(tk.Tk):
         self.wins_label = tk.Label(
             self.top_bar, bg="navy", fg="azure", font=("Courier", 30),
             textvariable=self.wins, anchor=tk.W, padx=20
-        )
-
-        self.winning_table_label = tk.Label(
-            self.middle_area, bg="blue4", fg="DarkOrange2",
-            font=("Courier", 19), textvariable=self.winning_table
         )
 
         self.card_stack_label = tk.Label(
@@ -489,6 +485,10 @@ class PokerGUI(tk.Tk):
             810, 335, anchor=tk.NW, image=self.dealt_hand[4]
         )
 
+        # Canvas texts
+        self.winning_table_text = self.middle_area.create_text(
+            530, 162, text=self.game.change_win_table(), font=("Courier", 20), fill="DarkOrange2")
+
         # Canvas window objects
         self.credits_window = self.top_bar.create_window(
             20, 15, anchor=tk.NW, height=65, width=380, window=self.credits_label
@@ -498,10 +498,6 @@ class PokerGUI(tk.Tk):
         )
         self.wins_window = self.top_bar.create_window(
             1004, 15, anchor=tk.NE, height=65, width=340, window=self.wins_label
-        )
-
-        self.winning_table_window = self.middle_area.create_window(
-            960, 40, anchor=tk.NE, height=235, width=800, window=self.winning_table_label
         )
 
         self.first_card_hold_label_window = self.bottom_bar.create_window(
