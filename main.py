@@ -32,7 +32,7 @@ class PokerGUI(tk.Tk):
         Load card image files for dealt cards based on
         the dealt_cards list in the game module.
         """
-        self.card_stack = self.resize_and_create_image_object("./PlayingCards/cardBack.png")
+        self.card_back = self.resize_and_create_image_object("./PlayingCards/cardBack.png")
 
         dealt_hand = []
 
@@ -130,6 +130,7 @@ class PokerGUI(tk.Tk):
         self.dealt_hand = self.load_card_images(self.game.dealt_cards)
 
         if not self.game.is_initial_deal:
+            self.deck_shuffle_animation(self.card_stack)
             self.initial_deal_animation(self.dealt_hand)
         else:
             self.additional_deal_animation(
@@ -232,6 +233,24 @@ class PokerGUI(tk.Tk):
 
         return reset_y
 
+    def deck_shuffle_animation(self, card_deck: list) -> None:
+        """Animate deck shuffling before dealing initial hand."""
+        self.middle_area.itemconfigure(self.card_in_transit, state="hidden")
+
+        for i in range(4):
+            modulo = 1 if i % 2 == 0 else 0
+            for j in range(6):
+                x_increment = 25 if j < 3 else -25
+                y_increment = -6 if j < 3 else 6
+                for val, card in enumerate(card_deck):
+                    if val % 2 == modulo:
+                        self.after(2, self.update_discarded_card_position(card, x_increment, y_increment))
+                    else:
+                        self.after(2, self.update_discarded_card_position(card, x_increment * -1/3, y_increment * -1/3))
+
+
+        self.middle_area.itemconfigure(self.card_in_transit, state="normal")
+
     def animate_dealt_card(
         self, end_coords: tuple[int, int], steps: int,
         last_card = None, card: ImageTk.PhotoImage = None
@@ -250,7 +269,6 @@ class PokerGUI(tk.Tk):
         if last_card:
             increment = 1
             self.middle_area.itemconfig(last_card, image=card)
-            self.middle_area.tag_raise(self.card_in_transit)
             reset_y_additional = self.reveal_last_card_animation(increment, steps)
             reset_x = increments[0] * steps * -1
             reset_y = (increments[1] * steps + reset_y_additional) * -1
@@ -267,16 +285,16 @@ class PokerGUI(tk.Tk):
             self.first_card, self.second_card, self.third_card, self.fourth_card, self.fifth_card
         ]
 
-        self.animate_dealt_card((0, 290), 10)
-        self.middle_area.itemconfig(dealt_cards[0], image=self.card_stack)
-        self.animate_dealt_card((185, 290), 10)
-        self.middle_area.itemconfig(dealt_cards[1], image=self.card_stack)
-        self.animate_dealt_card((370, 290), 10)
-        self.middle_area.itemconfig(dealt_cards[2], image=self.card_stack)
-        self.animate_dealt_card((555, 290), 10)
-        self.middle_area.itemconfig(dealt_cards[3], image=self.card_stack)
-        self.animate_dealt_card((740, 290), 10)
-        self.middle_area.itemconfig(dealt_cards[4], image=self.card_stack)
+        self.animate_dealt_card((-14, 304), 10)
+        self.middle_area.itemconfig(dealt_cards[0], image=self.card_back)
+        self.animate_dealt_card((171, 304), 10)
+        self.middle_area.itemconfig(dealt_cards[1], image=self.card_back)
+        self.animate_dealt_card((356, 304), 10)
+        self.middle_area.itemconfig(dealt_cards[2], image=self.card_back)
+        self.animate_dealt_card((541, 304), 10)
+        self.middle_area.itemconfig(dealt_cards[3], image=self.card_back)
+        self.animate_dealt_card((726, 304), 10)
+        self.middle_area.itemconfig(dealt_cards[4], image=self.card_back)
 
         self.reveal_initial_cards_animation(dealt_cards, cards)
 
@@ -307,7 +325,7 @@ class PokerGUI(tk.Tk):
     ) -> None:
         """Run animations for discarded cards out of the screen and deal new ones."""
         discarded_cards_images = []
-        dealt_card_end_coordinates = [(0, 290), (186, 290), (370, 290), (555, 290), (740, 290)]
+        dealt_card_end_coordinates = [(-14, 304), (171, 304), (356, 304), (541, 304), (726, 304)]
         dealt_cards = [
             self.first_card, self.second_card, self.third_card,
             self.fourth_card, self.fifth_card
@@ -385,10 +403,10 @@ class PokerGUI(tk.Tk):
             textvariable=self.wins, anchor=tk.W, padx=20
         )
 
-        self.card_stack_label = tk.Label(
-            self.middle_area, bg="blue4", image=self.card_stack
+        self.card_back_label = tk.Label(
+            self.middle_area, bg="blue4", image=self.card_back
         )
-        self.card_stack_label.image = self.card_stack
+        self.card_back_label.image = self.card_back
 
         self.first_card_hold_label = tk.Label(
             self.bottom_bar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19)
@@ -463,11 +481,26 @@ class PokerGUI(tk.Tk):
         )
 
         # Canvas images
-        self.card_stack_image = self.middle_area.create_image(
-            70, 45, anchor=tk.NW, image=self.card_stack
-        )
+        def card_stack_images(self, canvas: tk.Canvas) -> list:
+            """Create card images for card stack on given canvas."""
+            card_stack_images = []
+            x_point = 70
+            y_point = 45
+
+            for _ in range(8):
+                card_stack_images.append(canvas.create_image(
+                    x_point, y_point, anchor=tk.NW, image=self.card_back
+                ))
+
+                x_point += 2
+                y_point -= 2
+
+            return card_stack_images
+
+        self.card_stack = card_stack_images(self, self.middle_area)
+
         self.card_in_transit = self.middle_area.create_image(
-            70, 45, anchor=tk.NW, image=self.card_stack
+            84, 31, anchor=tk.NW, image=self.card_back
         )
         self.first_card = self.middle_area.create_image(
             70, 335, anchor=tk.NW, image=self.dealt_hand[0]
