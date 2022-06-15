@@ -4,7 +4,6 @@ main.py: Main program file for Video Poker containing the tkinter GUI class
 @author: Joonas Pietilä
 """
 
-import time
 import tkinter as tk
 
 from PIL import ImageTk, Image
@@ -124,28 +123,28 @@ class PokerGUI(tk.Tk):
             discarded_cards_indexes, discarded_cards = self.game.deal()
             self.clear_hold_labels()
 
-        # Deal animations
-        # Running initial deal function sets initial deal flag to false
-        if not self.game.is_initial_deal:
-            if not self.first_deal:
-                if self.doubling_active:
-                    self.collect_doubling_card_back_animation()
-                    self.doubling_active = False
-                else:
-                    self.collect_cards_back_animation()
-            self.dealt_hand = self.load_card_images(self.game.dealt_cards)
-            self.deck_shuffle_animation(self.card_stack)
-            self.initial_deal_animation(self.dealt_hand)
-            self.first_deal = False
-        else:
-            self.dealt_hand = self.load_card_images(self.game.dealt_cards)
-            self.additional_deal_animation(
-                self.dealt_hand, discarded_cards_indexes, discarded_cards)
+            # Deal animations
+            # Running initial deal function sets initial deal flag to false
+            if not self.game.is_initial_deal:
+                if not self.first_deal:
+                    if self.doubling_active:
+                        self.collect_doubling_card_back_animation()
+                        self.doubling_active = False
+                    else:
+                        self.collect_cards_back_animation()
+                self.dealt_hand = self.load_card_images(self.game.dealt_cards)
+                self.deck_shuffle_animation(self.card_stack)
+                self.initial_deal_animation(self.dealt_hand)
+                self.first_deal = False
+            else:
+                self.dealt_hand = self.load_card_images(self.game.dealt_cards)
+                self.additional_deal_animation(
+                    self.dealt_hand, discarded_cards_indexes, discarded_cards)
 
-        if self.game.current_win > 0:
-            self.winning_hand_view()
-        else:
-            self.no_win_view()
+            if self.game.current_win > 0:
+                self.winning_hand_view()
+            else:
+                self.no_win_view()
 
     def hold(self, card_index):
         """Event handler for hold buttons. Change hold status of the
@@ -230,8 +229,7 @@ class PokerGUI(tk.Tk):
     ) -> None:
         """Update dealt initial hand cards with their real face value images."""
         for i, card in enumerate(dealt_cards):
-            self.middle_area.itemconfig(card, image=cards[i])
-            time.sleep(0.12)
+            self.after(150, self.middle_area.itemconfig(card, image=cards[i]))
             self.update()
 
     def reveal_last_card_animation(self, increment: int, steps: int) -> int:
