@@ -19,6 +19,7 @@ class PokerGUI(tk.Tk):
         self.game = PokerGame()
         self.dealt_hand = self.load_card_images(self.game.dealt_cards)
         self.first_deal = True
+        self.doubling_active = False
         self.create_layout()
 
     @staticmethod
@@ -39,13 +40,8 @@ class PokerGUI(tk.Tk):
         dealt_hand = []
 
         for i in range(5):
-            # Third card is the doubling card and not shown when doubling
-            if i == 2 and self.game.is_doubling_active:
-                dealt_hand.append(self.resize_and_create_image_object(
-                "./PlayingCards/cardBack.png"))
-            else:
-                dealt_hand.append(self.resize_and_create_image_object(
-                    f"./PlayingCards/{dealt_cards[i]}.png"))
+            dealt_hand.append(self.resize_and_create_image_object(
+                f"./PlayingCards/{dealt_cards[i]}.png"))
 
         return dealt_hand
 
@@ -101,12 +97,13 @@ class PokerGUI(tk.Tk):
     def after_doubling_view(self, double_win):
         """Update GUI to show either win or no win view after
         doubling based on the double_win result."""
-        # Doubling ending animations here
-
         if double_win:
             self.winning_hand_view()
         else:
             self.no_win_view()
+
+        self.dealt_hand = self.load_card_images(self.game.dealt_cards)
+        self.middle_area.itemconfig(self.third_card, image=self.dealt_hand[2])
 
     def change_bet(self):
         """Event handler for bet button. Run change bet function
@@ -131,7 +128,11 @@ class PokerGUI(tk.Tk):
         # Running initial deal function sets initial deal flag to false
         if not self.game.is_initial_deal:
             if not self.first_deal:
-                self.collect_cards_back_animation()
+                if self.doubling_active:
+                    self.collect_doubling_card_back_animation()
+                    self.doubling_active = False
+                else:
+                    self.collect_cards_back_animation()
             self.dealt_hand = self.load_card_images(self.game.dealt_cards)
             self.deck_shuffle_animation(self.card_stack)
             self.initial_deal_animation(self.dealt_hand)
@@ -157,8 +158,16 @@ class PokerGUI(tk.Tk):
         game module and update GUI elements to active doubling view."""
         if not self.game.is_doubling_active and self.game.current_win > 0:
             self.game.double()
-            # Doubling start animations here
             self.active_doubling_view()
+
+            if self.doubling_active:
+                self.collect_doubling_card_back_animation()
+            else:
+                self.collect_cards_back_animation()
+                self.doubling_active = True
+
+            self.deck_shuffle_animation(self.card_stack)
+            self.deal_doubling_card_animation()
 
     def select_low(self):
         """Event handler for low button. Run doubling result check
@@ -166,9 +175,7 @@ class PokerGUI(tk.Tk):
         GUI according to doubling result."""
         if self.game.is_doubling_active:
             double_choice = ["A", "2", "3", "4", "5", "6"]
-
             double_win = self.game.check_doubling_result(double_choice)
-
             self.after_doubling_view(double_win)
 
     def select_high(self):
@@ -177,9 +184,7 @@ class PokerGUI(tk.Tk):
         GUI according to doubling result."""
         if self.game.is_doubling_active:
             double_choice = ["8", "9", "10", "J", "Q", "K"]
-
             double_win = self.game.check_doubling_result(double_choice)
-
             self.after_doubling_view(double_win)
 
     def collect_current_win(self):
@@ -386,6 +391,17 @@ class PokerGUI(tk.Tk):
         self.animate_dealt_card(dealt_cards[2], (-356, -304), 10)
         self.animate_dealt_card(dealt_cards[3], (-541, -304), 10)
         self.animate_dealt_card(dealt_cards[4], (-726, -304), 10)
+
+    def deal_doubling_card_animation(self) -> None:
+        """Deal the card used with doubling."""
+        self.middle_area.move(self.third_card, -356, -304)
+        self.animate_dealt_card(self.third_card, (356, 304), 10)
+        self.middle_area.move(self.third_card, 356, 304)
+        self.middle_area.itemconfig(self.third_card, image=self.card_back)
+
+    def collect_doubling_card_back_animation(self) -> None:
+        """Collect the card used with doubling back to deck."""
+        self.animate_dealt_card(self.third_card, (-356, -304), 10)
 
     def create_layout(self):
         """Create the tkinter GUI layout for the PokerGUI class."""
