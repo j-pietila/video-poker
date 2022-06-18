@@ -200,24 +200,21 @@ class PokerGUI(tk.Tk):
     def collect_current_win(self):
         """Event handler for collect button. Collect current win with
         a GUI counting sequence animation and set GUI to base state."""
+        self.collect_current_win_animation()
+        self.no_win_view()
+
+    def collect_current_win_animation(self):
+        """Animation to transfer current win to overall winnings."""
         win_update = self.game.current_win
         decrement = win_update / 8
-
         self.game.collect_current_win()
 
         for i in range(7, -1, -1):
             win_update -= decrement
-            self.after(250, self.transfer_animation_step(i, win_update, decrement))
-
-        self.no_win_view()
-
-    def transfer_animation_step(self, i, win_update, decrement):
-        """Update the GUI elements for current win
-        transfer animation step and update the view."""
-        self.wins.set(f"Wins {self.game.winnings - (i * decrement):.2f}")
-        # Occasional final result is -0.00, hence abs()
-        self.current_win.set(f"{abs(win_update):.2f}")
-        self.update()
+            self.after(250, self.wins.set(f"Wins {self.game.winnings - (i * decrement):.2f}"))
+            # Occasional final result is -0.00, hence abs()
+            self.current_win.set(f"{abs(win_update):.2f}")
+            self.update()
 
     @staticmethod
     def get_coordinate_increments(
