@@ -19,6 +19,7 @@ class PokerGUI(tk.Tk):
         self.dealt_hand = self.load_card_images(self.game.dealt_cards)
         self.first_deal = True
         self.doubling_active = False
+        self.doubling_choice_active = False
         self.create_layout()
 
     @staticmethod
@@ -71,6 +72,7 @@ class PokerGUI(tk.Tk):
         """Update GUI to show winning hand view."""
         if self.game.current_win > 0:
             self.bottom_bar.configure(bg="DeepPink3")
+            self.rolling_double_options_label.config(bg="DeepPink3")
             self.bottom_bar.coords(self.current_win_window, 600, 18)
             self.current_win.set(f"{self.game.current_win:.2f}")
             self.bottom_bar.itemconfigure(self.current_win_window, state="normal")
@@ -80,6 +82,7 @@ class PokerGUI(tk.Tk):
     def no_win_view(self):
         """Update GUI to show losing hand view."""
         self.bottom_bar.configure(bg="snow4")
+        self.rolling_double_options_label.config(bg="snow4")
         self.bottom_bar.coords(self.current_win_window, 600, 18)
         self.current_win.set(f"{self.game.current_win:.2f}")
         self.bottom_bar.itemconfigure(self.current_win_window, state="hidden")
@@ -88,8 +91,9 @@ class PokerGUI(tk.Tk):
 
     def active_doubling_view(self):
         """Update GUI to show active doubling view."""
-        self.bottom_bar.coords(self.current_win_window, 270, 18)
+        self.bottom_bar.coords(self.current_win_window, 270, 16)
         self.current_win.set(f"{self.game.current_win:.2f}")
+        self.rolling_double_options_label.config(bg="DeepPink3")
         self.bottom_bar.itemconfigure(self.double_question_window, state="hidden")
         self.bottom_bar.itemconfigure(self.active_doubling_window, state="normal")
 
@@ -100,6 +104,13 @@ class PokerGUI(tk.Tk):
             self.winning_hand_view()
         else:
             self.no_win_view()
+
+        self.doubling_choice_active = False
+        self.doubling_options.set("")
+        self.rolling_double_options_label.place(x=2, y=20)
+        self.bottom_bar.itemconfigure(self.rolling_double_options_window, state="hidden")
+        self.bottom_bar.itemconfigure(self.rolling_double_options_left_mask_window, state="hidden")
+        self.bottom_bar.itemconfigure(self.rolling_double_options_right_mask_window, state="hidden")
 
         self.dealt_hand = self.load_card_images(self.game.dealt_cards)
         self.middle_area.itemconfig(self.third_card, image=self.dealt_hand[2])
@@ -391,11 +402,40 @@ class PokerGUI(tk.Tk):
         self.animate_dealt_card(dealt_cards[4], (-726, -304), 10)
 
     def deal_doubling_card_animation(self) -> None:
-        """Deal the card used with doubling."""
+        """
+        Deal the card used with doubling and activate rolling doubling
+        choices text animation after the doubling card has been dealt.
+        """
         self.middle_area.move(self.third_card, -356, -304)
         self.animate_dealt_card(self.third_card, (356, 304), 10)
         self.middle_area.move(self.third_card, 356, 304)
         self.middle_area.itemconfig(self.third_card, image=self.card_back)
+
+        self.bottom_bar.itemconfigure(self.rolling_double_options_window, state="normal")
+        self.bottom_bar.itemconfigure(self.rolling_double_options_left_mask_window, state="normal")
+        self.bottom_bar.itemconfigure(self.rolling_double_options_right_mask_window, state="normal")
+        self.doubling_choice_active = True
+        self.rolling_doubling_options_animation()
+
+    def rolling_doubling_options_animation(self) -> None:
+        """Animate the rolling doubling options text."""
+        text1 = "A 2 3 4 5 6 OR 8 9 10 J Q K OR A 2 3 4 5 6"
+        text2 = "8 9 10 J Q K OR A 2 3 4 5 6 OR 8 9 10 J Q K"
+        self.doubling_options.set(text1)
+        self.rolling_double_options_label.config(bg="DeepPink3")
+        x_pos = 510
+
+        while self.doubling_choice_active:
+            if x_pos <= 180 and self.doubling_options.get() == text1:
+                x_pos = 510
+                self.doubling_options.set(text2)
+            elif x_pos <= 160 and self.doubling_options.get() == text2:
+                x_pos = 510
+                self.doubling_options.set(text1)
+
+            x_pos -= 5
+            self.after(20, self.rolling_double_options_label.place(x=x_pos, y=20))
+            self.update()
 
     def collect_doubling_card_back_animation(self) -> None:
         """Collect the card used with doubling back to deck."""
@@ -407,10 +447,18 @@ class PokerGUI(tk.Tk):
         self.geometry("1024x976")
 
         # Canvases
-        self.top_bar = tk.Canvas(self, bd=0, bg="snow4", height=90, width=1024)
-        self.middle_area = tk.Canvas(self, bd=0, bg="blue4", height=588, width=1024)
-        self.bottom_bar = tk.Canvas(self, bd=0, bg="snow4", height=90, width=1024)
-        self.button_area = tk.Canvas(self, bd=0, bg="gray20", height=200, width=1024)
+        self.top_bar = tk.Canvas(
+            self, bd=0, bg="snow4", height=94, width=1024, highlightthickness=0
+        )
+        self.middle_area = tk.Canvas(
+            self, bd=0, bg="blue4", height=588, width=1024, highlightthickness=0
+        )
+        self.bottom_bar = tk.Canvas(
+            self, bd=0, bg="snow4", height=90, width=1024, highlightthickness=0
+        )
+        self.button_area = tk.Canvas(
+            self, bd=0, bg="gray20", height=204, width=1024, highlightthickness=0
+        )
 
         # StringVars
         self.credits = tk.StringVar()
@@ -422,6 +470,9 @@ class PokerGUI(tk.Tk):
 
         self.current_win = tk.StringVar()
         self.current_win.set(f"{self.game.current_win:.2f}")
+
+        self.doubling_options = tk.StringVar()
+        self.doubling_options.set("")
 
         self.hold_button = tk.StringVar()
         self.hold_button.set("HOLD")
@@ -463,12 +514,22 @@ class PokerGUI(tk.Tk):
         self.double_question_label = tk.Label(
             self.bottom_bar, bg="DeepPink3", text="WANT TO DOUBLE?", font=("Courier", 26)
         )
+        self.rolling_double_options_label = tk.Label(
+            self.bottom_bar, fg="navy", bg="DeepPink3",
+            font=("Courier", 28), textvariable=self.doubling_options
+        )
+        self.rolling_double_options_left_mask_label = tk.Label(
+            self.bottom_bar, bg="DeepPink3"
+        )
+        self.rolling_double_options_righ_mask_label = tk.Label(
+            self.bottom_bar, bg="DeepPink3"
+        )
         self.current_win_label = tk.Label(
             self.bottom_bar, bg="navy", fg="azure", font=("Courier", 24),
             textvariable=self.current_win
         )
         self.current_bet_label = tk.Label(
-            self.bottom_bar, bg="DeepPink3", text="BET", font=("Courier", 24)
+            self.bottom_bar, bg="DeepPink3", text="BET ", font=("Courier", 24), anchor="e"
         )
 
         # Buttons
@@ -599,8 +660,20 @@ class PokerGUI(tk.Tk):
             window=self.current_win_label, state="hidden"
         )
         self.active_doubling_window = self.bottom_bar.create_window(
-            180, 18, anchor=tk.NW, height=60, width=80,
+            1, 16, anchor=tk.NW, height=60, width=270,
             window=self.current_bet_label, state="hidden"
+        )
+        self.rolling_double_options_window = self.bottom_bar.create_window(
+            540, 20, anchor=tk.NW, height=60, width=420,
+            window=self.rolling_double_options_label, state="hidden"
+        )
+        self.rolling_double_options_left_mask_window = self.bottom_bar.create_window(
+            430, 16, anchor=tk.NW, height=60, width=75,
+            window=self.rolling_double_options_left_mask_label, state="hidden"
+        )
+        self.rolling_double_options_right_mask_window = self.bottom_bar.create_window(
+            950, 16, anchor=tk.NW, height=60, width=75,
+            window=self.rolling_double_options_righ_mask_label, state="hidden"
         )
 
         self.first_card_hold_button_window = self.button_area.create_window(
