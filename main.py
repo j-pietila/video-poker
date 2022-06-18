@@ -120,7 +120,10 @@ class PokerGUI(tk.Tk):
         from game module and update GUI accordingly."""
         self.game.change_bet()
 
-        self.bet.set(f"Bet {self.game.bet_levels[self.game.bet_level]:.2f}")
+        self.top_bar.itemconfigure(
+            self.bet_level_text,
+            text=f"Bet {self.game.bet_levels[self.game.bet_level]:.2f}"
+        )
         self.middle_area.itemconfigure(
             self.winning_table_text,
             text=self.game.change_win_table()
@@ -457,11 +460,25 @@ class PokerGUI(tk.Tk):
             self, bd=0, bg="gray20", height=204, width=1024, highlightthickness=0
         )
 
+        # Canvas objects
+        self.bet_yellow_circle = self.top_bar.create_oval(
+            533, 4, 618, 89, fill="gold", outline="gold"
+        )
+
+        # Canvas texts
+        self.bet_level_text = self.top_bar.create_text(
+            532, 48,
+            text=f"Bet {self.game.bet_levels[self.game.bet_level]:.2f}",
+            font=("Courier", 28)
+        )
+        self.winning_table_text = self.middle_area.create_text(
+            530, 162, text=self.game.change_win_table(), font=("Courier", 20), fill="DarkOrange2"
+        )
+        self.top_bar.tag_raise(self.bet_level_text)
+
         # StringVars
         self.credits = tk.StringVar()
         self.credits.set("Credits 4.20")
-        self.bet = tk.StringVar()
-        self.bet.set(f"Bet {self.game.bet_levels[self.game.bet_level]:.2f}")
         self.wins = tk.StringVar()
         self.wins.set(f"Wins {self.game.winnings:.2f}")
 
@@ -478,10 +495,6 @@ class PokerGUI(tk.Tk):
         self.credits_label = tk.Label(
             self.top_bar, bg="navy", fg="azure", font=("Courier", 30),
             textvariable=self.credits, anchor=tk.W, padx=20
-        )
-        self.bet_label = tk.Label(
-            self.top_bar, bg="snow4", font=("Courier", 28),
-            textvariable=self.bet, anchor=tk.W, padx=20
         )
         self.wins_label = tk.Label(
             self.top_bar, bg="navy", fg="azure", font=("Courier", 30),
@@ -613,16 +626,9 @@ class PokerGUI(tk.Tk):
             810, 335, anchor=tk.NW, image=self.dealt_hand[4]
         )
 
-        # Canvas texts
-        self.winning_table_text = self.middle_area.create_text(
-            530, 162, text=self.game.change_win_table(), font=("Courier", 20), fill="DarkOrange2")
-
         # Canvas window objects
         self.credits_window = self.top_bar.create_window(
             20, 15, anchor=tk.NW, height=65, width=380, window=self.credits_label
-        )
-        self.bet_window = self.top_bar.create_window(
-            512, 15, anchor=tk.N, height=65, width=200, window=self.bet_label
         )
         self.wins_window = self.top_bar.create_window(
             1004, 15, anchor=tk.NE, height=65, width=340, window=self.wins_label
