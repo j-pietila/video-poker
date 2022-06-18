@@ -87,15 +87,23 @@ class PokerGame():
 
         return win_table_str
 
-    def deal(self):
-        """Check the initial deal flag and call either
-        initial_deal or additional_deal function."""
+    def deal(self) -> tuple[list[int], list[str]]:
+        """
+        Check the initial deal flag and call either
+        initial_deal or additional_deal function.
+        Return lists of discarded cards indexes and strings.
+        """
+        discarded_cards_indexes = []
+        discarded_cards = []
+
         if self.is_initial_deal:
             self.initial_deal()
         else:
-            self.additional_deal()
+            discarded_cards_indexes, discarded_cards = self.additional_deal()
 
-    def initial_deal(self):
+        return discarded_cards_indexes, discarded_cards
+
+    def initial_deal(self) -> None:
         """Build and shuffle a new deck, pop five cards from deck
         to dealt_cards and set initial deal flag to False."""
         self.deck.build_deck()
@@ -108,14 +116,21 @@ class PokerGame():
 
         self.is_initial_deal = False
 
-    def additional_deal(self):
-        """Discard cards that have their hold card flag set to 0
+    def additional_deal(self) -> tuple[list[int], list[str]]:
+        """
+        Discard cards that have their hold card flag set to 0
         and replace them with cards popped from the deck. Reset hold
-        card flags and set initial deal flag to True."""
-        discarded_cards = enumerate(self.hold_card_flags)
+        card flags and set initial deal flag to True.
+        Return lists of discarded cards indexes and strings.
+        """
+        discarded_cards_flags = enumerate(self.hold_card_flags)
+        discarded_cards = []
+        discarded_cards_indexes = []
 
-        for i in discarded_cards:
+        for i in discarded_cards_flags:
             if i[1] == 0:
+                discarded_cards.append(self.dealt_cards[i[0]])
+                discarded_cards_indexes.append(i[0])
                 self.dealt_cards[i[0]] = self.deck.deck.pop(-1)
 
         current_win_index = self.check_win_category()
@@ -129,6 +144,8 @@ class PokerGame():
         self.hold_card_flags = [0, 0, 0, 0, 0]
 
         self.is_initial_deal = True
+
+        return discarded_cards_indexes, discarded_cards
 
     def hold(self, index):
         """Change hold flag of card at given index
