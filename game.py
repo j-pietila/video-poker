@@ -17,8 +17,6 @@ class PokerGame():
         self.bet_levels = [0.20, 0.40, 0.60, 0.80, 1.00]
         self.winnings = 0.0
         self.current_win = 0.0
-        self.is_initial_deal = True
-        self.is_doubling_active = False
         self.win_tables = {
             0.20: [8.00, 8.00, 3.00, 1.60, 0.80, 0.60, 0.40, 0.40],
             0.40: [16.00, 16.00, 6.00, 3.20, 1.60, 1.20, 0.80, 0.80],
@@ -43,8 +41,7 @@ class PokerGame():
     def change_bet(self):
         """Increase bet level by one, if game
         is in initial deal phase."""
-        if self.is_initial_deal:
-            self.bet_level += 1
+        self.bet_level += 1
 
     def change_win_table(self):
         """Change current win table string according
@@ -87,25 +84,11 @@ class PokerGame():
 
         return win_table_str
 
-    def deal(self) -> tuple[list[int], list[str]]:
-        """
-        Check the initial deal flag and call either
-        initial_deal or additional_deal function.
-        Return lists of discarded cards indexes and strings.
-        """
-        discarded_cards_indexes = []
-        discarded_cards = []
-
-        if self.is_initial_deal:
-            self.initial_deal()
-        else:
-            discarded_cards_indexes, discarded_cards = self.additional_deal()
-
-        return discarded_cards_indexes, discarded_cards
-
     def initial_deal(self) -> None:
-        """Build and shuffle a new deck, pop five cards from deck
-        to dealt_cards and set initial deal flag to False."""
+        """
+        Build and shuffle a new card deck and pop five
+        cards from deck to dealt cards.
+        """
         self.deck.build_deck()
         self.deck.shuffle()
 
@@ -114,18 +97,15 @@ class PokerGame():
         for _ in range(5):
             self.dealt_cards.append(self.deck.deck.pop(-1))
 
-        self.is_initial_deal = False
-
     def additional_deal(self) -> tuple[list[int], list[str]]:
         """
-        Discard cards that have their hold card flag set to 0
-        and replace them with cards popped from the deck. Reset hold
-        card flags and set initial deal flag to True.
+        Discard cards with hold card flag set to 0 replacing them
+        with new cards popped from the deck. Reset hold card flags.
         Return lists of discarded cards indexes and strings.
         """
-        discarded_cards_flags = enumerate(self.hold_card_flags)
         discarded_cards = []
         discarded_cards_indexes = []
+        discarded_cards_flags = enumerate(self.hold_card_flags)
 
         for i in discarded_cards_flags:
             if i[1] == 0:
@@ -143,18 +123,17 @@ class PokerGame():
 
         self.hold_card_flags = [0, 0, 0, 0, 0]
 
-        self.is_initial_deal = True
-
         return discarded_cards_indexes, discarded_cards
 
     def hold(self, index):
-        """Change hold flag of card at given index
-        from 0 to 1 or from 1 to 0 to indicate hold state."""
-        if not self.is_initial_deal:
-            if self.hold_card_flags[index] == 0:
-                self.hold_card_flags[index] = 1
-            else:
-                self.hold_card_flags[index] = 0
+        """
+        Change cards hold flag at given index
+        between 0 and 1 to indicate hold state.
+        """
+        if self.hold_card_flags[index] == 0:
+            self.hold_card_flags[index] = 1
+        else:
+            self.hold_card_flags[index] = 0
 
     def prep_hand_for_checking(self):
         """Destructure the final hand to lists of jokers, values
@@ -285,7 +264,6 @@ class PokerGame():
     def double(self):
         """Double current win and deal one random card from
         newly built and shuffled card deck."""
-        self.is_doubling_active = True
         self.current_win *= 2
 
         self.deck.build_deck()
@@ -297,11 +275,9 @@ class PokerGame():
     def check_doubling_result(self, double_choice):
         """Return True for succesfull doubling if doubling card is
         Joker or in double choice from GUI. Return False if not."""
-        self.is_doubling_active = False
-
         if self.dealt_cards[2][:-1] in double_choice:
             return True
-        elif self.dealt_cards[2] == "Joker":
+        if self.dealt_cards[2] == "Joker":
             return True
 
         self.current_win = 0.0

@@ -18,6 +18,7 @@ class PokerGUI(tk.Tk):
         self.game = PokerGame()
         self.dealt_hand = self.load_card_images(self.game.dealt_cards)
         self.first_deal = True
+        self.initial_deal = True
         self.doubling_active = False
         self.doubling_choice_active = False
         self.create_layout()
@@ -70,17 +71,20 @@ class PokerGUI(tk.Tk):
 
     def winning_hand_view(self):
         """Update GUI to show winning hand view."""
-        if self.game.current_win > 0:
-            self.bottom_bar.configure(bg="DeepPink3")
-            self.rolling_double_options_label.config(bg="DeepPink3")
-            self.bottom_bar.coords(self.current_win_window, 600, 18)
-            self.current_win.set(f"{self.game.current_win:.2f}")
-            self.bottom_bar.itemconfigure(self.current_win_window, state="normal")
-            self.bottom_bar.itemconfigure(self.double_question_window, state="normal")
-            self.bottom_bar.itemconfigure(self.active_doubling_window, state="hidden")
+        self.change_button_state(self.collect_button, "normal")
+        self.change_button_state(self.double_button, "normal")
+        self.bottom_bar.configure(bg="DeepPink3")
+        self.rolling_double_options_label.config(bg="DeepPink3")
+        self.bottom_bar.coords(self.current_win_window, 600, 18)
+        self.current_win.set(f"{self.game.current_win:.2f}")
+        self.bottom_bar.itemconfigure(self.current_win_window, state="normal")
+        self.bottom_bar.itemconfigure(self.double_question_window, state="normal")
+        self.bottom_bar.itemconfigure(self.active_doubling_window, state="hidden")
 
     def no_win_view(self):
-        """Update GUI to show losing hand view."""
+        """Update GUI to show losing hand view and update button states."""
+        self.change_button_state(self.bet_button, "normal")
+        self.change_button_state(self.deal_button, "normal")
         self.bottom_bar.configure(bg="snow4")
         self.rolling_double_options_label.config(bg="snow4")
         self.bottom_bar.coords(self.current_win_window, 600, 18)
@@ -91,6 +95,7 @@ class PokerGUI(tk.Tk):
 
     def active_doubling_view(self):
         """Update GUI to show active doubling view."""
+        self.change_button_state(self.collect_button, "disabled")
         self.bottom_bar.coords(self.current_win_window, 270, 16)
         self.current_win.set(f"{self.game.current_win:.2f}")
         self.rolling_double_options_label.config(bg="DeepPink3")
@@ -100,6 +105,9 @@ class PokerGUI(tk.Tk):
     def after_doubling_view(self, double_win):
         """Update GUI to show either win or no win view after
         doubling based on the double_win result."""
+        self.change_button_state(self.low_button, "disabled")
+        self.change_button_state(self.high_button, "disabled")
+
         if double_win:
             self.winning_hand_view()
         else:
@@ -133,32 +141,41 @@ class PokerGUI(tk.Tk):
         """Event handler for deal button. Run deal function from game
         module and update GUI elements for changed cards and possible
         winning hand view."""
-        if self.game.current_win == 0:
-            discarded_cards_indexes, discarded_cards = self.game.deal()
+        self.change_button_state(self.deal_button, "disabled")
+        if self.initial_deal:
+            self.change_button_state(self.bet_button, "disabled")
+            if not self.first_deal:
+                if self.doubling_active:
+                    self.doubling_active = False
+                    self.collect_doubling_card_back_animation()
+                else:
+                    self.collect_cards_back_animation()
+
+            self.game.initial_deal()
+            self.dealt_hand = self.load_card_images(self.game.dealt_cards)
+            self.deck_shuffle_animation(self.card_stack)
+            self.initial_deal_animation(self.dealt_hand)
+            self.first_deal = False
+            self.initial_deal = False
+
+            self.change_button_state(self.deal_button, "normal")
+            for button in self.hold_buttons:
+                self.change_button_state(button, "normal")
+        else:
+            for button in self.hold_buttons:
+                self.change_button_state(button, "disabled")
+
+            discarded_cards_indexes, discarded_cards = self.game.additional_deal()
+            self.dealt_hand = self.load_card_images(self.game.dealt_cards)
+            self.additional_deal_animation(
+                self.dealt_hand, discarded_cards_indexes, discarded_cards)
             self.clear_hold_labels()
+            self.initial_deal = True
 
-            # Deal animations
-            # Running initial deal function sets initial deal flag to false
-            if not self.game.is_initial_deal:
-                if not self.first_deal:
-                    if self.doubling_active:
-                        self.collect_doubling_card_back_animation()
-                        self.doubling_active = False
-                    else:
-                        self.collect_cards_back_animation()
-                self.dealt_hand = self.load_card_images(self.game.dealt_cards)
-                self.deck_shuffle_animation(self.card_stack)
-                self.initial_deal_animation(self.dealt_hand)
-                self.first_deal = False
-            else:
-                self.dealt_hand = self.load_card_images(self.game.dealt_cards)
-                self.additional_deal_animation(
-                    self.dealt_hand, discarded_cards_indexes, discarded_cards)
-
-            if self.game.current_win > 0:
-                self.winning_hand_view()
-            else:
+            if self.game.current_win == 0:
                 self.no_win_view()
+            else:
+                self.winning_hand_view()
 
     def hold(self, card_index):
         """Event handler for hold buttons. Change hold status of the
@@ -169,40 +186,40 @@ class PokerGUI(tk.Tk):
     def activate_doubling(self):
         """Event handler for double button. Run doubling function from
         game module and update GUI elements to active doubling view."""
-        if not self.game.is_doubling_active and self.game.current_win > 0:
-            self.game.double()
-            self.active_doubling_view()
+        self.game.double()
+        self.active_doubling_view()
+        self.change_button_state(self.double_button, "disabled")
 
-            if self.doubling_active:
-                self.collect_doubling_card_back_animation()
-            else:
-                self.collect_cards_back_animation()
-                self.doubling_active = True
+        if self.doubling_active:
+            self.collect_doubling_card_back_animation()
+        else:
+            self.collect_cards_back_animation()
+            self.doubling_active = True
 
-            self.deck_shuffle_animation(self.card_stack)
-            self.deal_doubling_card_animation()
+        self.deck_shuffle_animation(self.card_stack)
+        self.deal_doubling_card_animation()
 
     def select_low(self):
         """Event handler for low button. Run doubling result check
         from game module with low card range selection and update
         GUI according to doubling result."""
-        if self.game.is_doubling_active:
-            double_choice = ["A", "2", "3", "4", "5", "6"]
-            double_win = self.game.check_doubling_result(double_choice)
-            self.after_doubling_view(double_win)
+        double_choice = ["A", "2", "3", "4", "5", "6"]
+        double_win = self.game.check_doubling_result(double_choice)
+        self.after_doubling_view(double_win)
 
     def select_high(self):
         """Event handler for high button. Run doubling result check
         from game module with high card range selection and update
         GUI according to doubling result."""
-        if self.game.is_doubling_active:
-            double_choice = ["8", "9", "10", "J", "Q", "K"]
-            double_win = self.game.check_doubling_result(double_choice)
-            self.after_doubling_view(double_win)
+        double_choice = ["8", "9", "10", "J", "Q", "K"]
+        double_win = self.game.check_doubling_result(double_choice)
+        self.after_doubling_view(double_win)
 
     def collect_current_win(self):
         """Event handler for collect button. Collect current win with
         a GUI counting sequence animation and set GUI to base state."""
+        self.change_button_state(self.double_button, "disabled")
+        self.change_button_state(self.collect_button, "disabled")
         self.collect_current_win_animation()
         self.no_win_view()
 
@@ -415,6 +432,8 @@ class PokerGUI(tk.Tk):
         self.bottom_bar.itemconfigure(self.rolling_double_options_left_mask_window, state="normal")
         self.bottom_bar.itemconfigure(self.rolling_double_options_right_mask_window, state="normal")
         self.doubling_choice_active = True
+        self.change_button_state(self.low_button, "normal")
+        self.change_button_state(self.high_button, "normal")
         self.rolling_doubling_options_animation()
 
     def rolling_doubling_options_animation(self) -> None:
@@ -440,6 +459,10 @@ class PokerGUI(tk.Tk):
     def collect_doubling_card_back_animation(self) -> None:
         """Collect the card used with doubling back to deck."""
         self.animate_dealt_card(self.third_card, (-356, -304), 10)
+
+    def change_button_state(self, button: tk.Button, state: str) -> None:
+        """Change GUI button state between normal and disabled."""
+        button["state"] = state
 
     def create_layout(self):
         """Create the tkinter GUI layout for the PokerGUI class."""
@@ -545,47 +568,55 @@ class PokerGUI(tk.Tk):
         # Buttons
         self.first_card_hold_button = tk.Button(
             self.button_area, bg="red3", activebackground="red4", font=("Courier", 20),
-            textvariable=self.hold_button, command=lambda: [self.hold(0)]
+            textvariable=self.hold_button, command=lambda: [self.hold(0)], state="disabled"
         )
         self.second_card_hold_button = tk.Button(
             self.button_area, bg="red3", activebackground="red4", font=("Courier", 20),
-            textvariable=self.hold_button, command=lambda: [self.hold(1)]
+            textvariable=self.hold_button, command=lambda: [self.hold(1)], state="disabled"
         )
         self.third_card_hold_button = tk.Button(
             self.button_area, bg="red3", activebackground="red4", font=("Courier", 20),
-            textvariable=self.hold_button, command=lambda: [self.hold(2)]
+            textvariable=self.hold_button, command=lambda: [self.hold(2)], state="disabled"
         )
         self.fourth_card_hold_button = tk.Button(
             self.button_area, bg="red3", activebackground="red4", font=("Courier", 20),
-            textvariable=self.hold_button, command=lambda: [self.hold(3)]
+            textvariable=self.hold_button, command=lambda: [self.hold(3)], state="disabled"
         )
         self.fifth_card_hold_button = tk.Button(
             self.button_area, bg="red3", activebackground="red4", font=("Courier", 20),
-            textvariable=self.hold_button, command=lambda: [self.hold(4)]
+            textvariable=self.hold_button, command=lambda: [self.hold(4)], state="disabled"
         )
+        self.hold_buttons = [
+            self.first_card_hold_button,
+            self.second_card_hold_button,
+            self.third_card_hold_button,
+            self.fourth_card_hold_button,
+            self.fifth_card_hold_button
+        ]
+
         self.bet_button = tk.Button(
-            self.button_area, bg="blue", activebackground="medium blue",
-            font=("Courier", 20), text="BET", command=lambda: [self.change_bet()]
-        )
-        self.collect_button = tk.Button(
-            self.button_area, bg="yellow2", activebackground="yellow3",
-            font=("Courier", 20), text="COLLECT", command=lambda: [self.collect_current_win()]
-        )
-        self.low_button = tk.Button(
-            self.button_area, bg="DarkOrange1", activebackground="DarkOrange3",
-            font=("Courier", 20), text="LOW", command=lambda: [self.select_low()]
-        )
-        self.high_button = tk.Button(
-            self.button_area, bg="DarkOrange1", activebackground="DarkOrange3",
-            font=("Courier", 20), text="HIGH", command=lambda: [self.select_high()]
-        )
-        self.double_button = tk.Button(
-            self.button_area, bg="DarkOrange1", activebackground="DarkOrange3",
-            font=("Courier", 20), text="DOUBLE", command=lambda: [self.activate_doubling()]
+            self.button_area, bg="blue", activebackground="medium blue", text="BET",
+            font=("Courier", 20), command=lambda: [self.change_bet()]
         )
         self.deal_button = tk.Button(
-            self.button_area, bg="green3", activebackground="green4",
-            font=("Courier", 20), text="DEAL", command=lambda: [self.deal()]
+            self.button_area, bg="green3", activebackground="green4", text="DEAL",
+            font=("Courier", 20), command=lambda: [self.deal()]
+        )
+        self.double_button = tk.Button(
+            self.button_area, bg="DarkOrange1", activebackground="DarkOrange3", text="DOUBLE",
+            font=("Courier", 20), command=lambda: [self.activate_doubling()], state="disabled"
+        )
+        self.low_button = tk.Button(
+            self.button_area, bg="DarkOrange1", activebackground="DarkOrange3", text="LOW",
+            font=("Courier", 20), command=lambda: [self.select_low()], state="disabled"
+        )
+        self.high_button = tk.Button(
+            self.button_area, bg="DarkOrange1", activebackground="DarkOrange3", text="HIGH",
+            font=("Courier", 20), command=lambda: [self.select_high()], state="disabled"
+        )
+        self.collect_button = tk.Button(
+            self.button_area, bg="yellow2", activebackground="yellow3", text="COLLECT",
+            font=("Courier", 20), command=lambda: [self.collect_current_win()], state="disabled"
         )
 
         # Canvas images
