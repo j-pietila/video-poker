@@ -7,6 +7,7 @@ main.py: Main program file for Video Poker containing the tkinter GUI class
 import tkinter as tk
 
 from PIL import ImageTk, Image
+from screeninfo import get_monitors
 
 from game import PokerGame
 
@@ -465,10 +466,25 @@ class PokerGUI(tk.Tk):
         button["state"] = state
         button["bg"] = background
 
+    @staticmethod
+    def check_aspect_ratio() -> float:
+        """
+        Check whether the users primary monitors aspect ratio
+        is 16:10 or 16:9. Return aspect ratio as a float.
+        """
+        for monitor in get_monitors():
+            if monitor.is_primary:
+                user_monitor = monitor
+
+        return user_monitor.width / user_monitor.height
+
+
     def create_layout(self):
         """Create the tkinter GUI layout for the PokerGUI class."""
         self.title("Jokeri Pokeri")
         self.geometry("1024x976")
+
+        aspect_ratio = self.check_aspect_ratio()
 
         # Canvases
         self.top_bar = tk.Canvas(
@@ -490,14 +506,22 @@ class PokerGUI(tk.Tk):
         )
 
         # Canvas texts
+        y_val = 36 if aspect_ratio == 1.9 else 28
+
         self.bet_level_text = self.top_bar.create_text(
-            532, 36, anchor=tk.N,
+            532, y_val, anchor=tk.N,
             text=f"Bet {self.game.bet_levels[self.game.bet_level]:.2f}",
             font=("Courier", 28)
         )
+
+        y_val = 152 if aspect_ratio == 1.9 else 148
+        font_size = 22 if aspect_ratio == 1.9 else 20
+
         self.winning_table_text = self.middle_area.create_text(
-            480, 152, text=self.game.change_win_table(), font=("Courier", 22), fill="DarkOrange2"
+            530, y_val, text=self.game.change_win_table(),
+            font=("Courier", font_size), fill="DarkOrange2"
         )
+        
         self.top_bar.tag_raise(self.bet_level_text)
 
         # StringVars
@@ -516,13 +540,15 @@ class PokerGUI(tk.Tk):
         self.hold_button.set("HOLD")
 
         # Labels
+        y_offset = 18 if aspect_ratio == 1.9 else 10
+
         self.credits_label = tk.Label(
             self.top_bar, bg="navy", fg="azure", font=("Courier", 30),
-            textvariable=self.credits, anchor=tk.N, pady=18
+            textvariable=self.credits, anchor=tk.N, pady=y_offset
         )
         self.wins_label = tk.Label(
             self.top_bar, bg="navy", fg="azure", font=("Courier", 30),
-            textvariable=self.wins, anchor=tk.N, pady=18
+            textvariable=self.wins, anchor=tk.N, pady=y_offset
         )
 
         self.card_back_label = tk.Label(
@@ -530,33 +556,38 @@ class PokerGUI(tk.Tk):
         )
         self.card_back_label.image = self.card_back
 
+        y_offset = 18 if aspect_ratio == 1.9 else 12
+
         self.first_card_hold_label = tk.Label(
             self.bottom_bar, bg="cyan2", fg="navy", text="hold",
-            font=("Courier", 19), anchor=tk.N, pady=18
+            font=("Courier", 19), anchor=tk.N, pady=y_offset
         )
         self.second_card_hold_label = tk.Label(
             self.bottom_bar, bg="cyan2", fg="navy", text="hold",
-            font=("Courier", 19), anchor=tk.N, pady=18
+            font=("Courier", 19), anchor=tk.N, pady=y_offset
         )
         self.third_card_hold_label = tk.Label(
             self.bottom_bar, bg="cyan2", fg="navy", text="hold",
-            font=("Courier", 19), anchor=tk.N, pady=18
+            font=("Courier", 19), anchor=tk.N, pady=y_offset
         )
         self.fourth_card_hold_label = tk.Label(
             self.bottom_bar, bg="cyan2", fg="navy", text="hold",
-            font=("Courier", 19), anchor=tk.N, pady=18
+            font=("Courier", 19), anchor=tk.N, pady=y_offset
         )
         self.fifth_card_hold_label = tk.Label(
             self.bottom_bar, bg="cyan2", fg="navy", text="hold",
-            font=("Courier", 19), anchor=tk.N, pady=18
+            font=("Courier", 19), anchor=tk.N, pady=y_offset
         )
         self.double_question_label = tk.Label(
             self.bottom_bar, bg="DeepPink3", text="WANT TO DOUBLE?",
-            font=("Courier", 26), anchor=tk.N, pady=18
+            font=("Courier", 26), anchor=tk.N, pady=y_offset
         )
+
+        y_offset = 12 if aspect_ratio == 1.9 else 3
+
         self.rolling_double_options_label = tk.Label(
             self.bottom_bar, fg="navy", bg="DeepPink3", font=("Courier", 28),
-            textvariable=self.doubling_options, anchor=tk.N, pady=12
+            textvariable=self.doubling_options, anchor=tk.N, pady=y_offset
         )
         self.rolling_double_options_left_mask_label = tk.Label(
             self.bottom_bar, bg="DeepPink3"
@@ -564,40 +595,48 @@ class PokerGUI(tk.Tk):
         self.rolling_double_options_righ_mask_label = tk.Label(
             self.bottom_bar, bg="DeepPink3"
         )
+
+        y_offset = 18 if aspect_ratio == 1.9 else 10
+
         self.current_win_label = tk.Label(
             self.bottom_bar, bg="navy", fg="azure", font=("Courier", 24),
-            textvariable=self.current_win, anchor=tk.N, pady=18
+            textvariable=self.current_win, anchor=tk.N, pady=y_offset
         )
+
+        y_offset = 16 if aspect_ratio == 1.9 else 7
+
         self.current_bet_label = tk.Label(
             self.bottom_bar, bg="DeepPink3", text="BET ", font=("Courier", 28),
-            anchor=tk.NE, pady=16
+            anchor=tk.NE, pady=y_offset
         )
 
         # Buttons
+        y_offset = 28 if aspect_ratio == 1.9 else 23
+
         self.first_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
             textvariable=self.hold_button, command=lambda: [self.hold(0)], state="disabled",
-            disabledforeground="grey1", anchor=tk.N, pady=28
+            disabledforeground="grey1", anchor=tk.N, pady=y_offset
         )
         self.second_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
             textvariable=self.hold_button, command=lambda: [self.hold(1)], state="disabled",
-            disabledforeground="grey1", anchor=tk.N, pady=28
+            disabledforeground="grey1", anchor=tk.N, pady=y_offset
         )
         self.third_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
             textvariable=self.hold_button, command=lambda: [self.hold(2)], state="disabled",
-            disabledforeground="grey1", anchor=tk.N, pady=28
+            disabledforeground="grey1", anchor=tk.N, pady=y_offset
         )
         self.fourth_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
             textvariable=self.hold_button, command=lambda: [self.hold(3)], state="disabled",
-            disabledforeground="grey1", anchor=tk.N, pady=28
+            disabledforeground="grey1", anchor=tk.N, pady=y_offset
         )
         self.fifth_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
             textvariable=self.hold_button, command=lambda: [self.hold(4)], state="disabled",
-            disabledforeground="grey1", anchor=tk.N, pady=28
+            disabledforeground="grey1", anchor=tk.N, pady=y_offset
         )
         self.hold_buttons = [
             self.first_card_hold_button,
@@ -610,32 +649,32 @@ class PokerGUI(tk.Tk):
         self.bet_button = tk.Button(
             self.button_area, bg="blue2", activebackground="navy", text="BET",
             font=("Courier", 20), command=lambda: [self.change_bet()], disabledforeground="grey1",
-            anchor=tk.N, pady=28
+            anchor=tk.N, pady=y_offset
         )
         self.deal_button = tk.Button(
             self.button_area, bg="green3", activebackground="dark green", text="DEAL",
             font=("Courier", 20), command=lambda: [self.deal()], disabledforeground="grey1",
-            anchor=tk.N, pady=28
+            anchor=tk.N, pady=y_offset
         )
         self.double_button = tk.Button(
             self.button_area, bg="DarkOrange4", activebackground="DarkOrange4", text="DOUBLE",
             font=("Courier", 20), command=lambda: [self.activate_doubling()], state="disabled",
-            disabledforeground="grey1", anchor=tk.N, pady=28
+            disabledforeground="grey1", anchor=tk.N, pady=y_offset
         )
         self.low_button = tk.Button(
             self.button_area, bg="DarkOrange4", activebackground="DarkOrange4", text="LOW",
             font=("Courier", 20), command=lambda: [self.select_low()], state="disabled",
-            disabledforeground="grey1", anchor=tk.N, pady=28
+            disabledforeground="grey1", anchor=tk.N, pady=y_offset
         )
         self.high_button = tk.Button(
             self.button_area, bg="DarkOrange4", activebackground="DarkOrange4", text="HIGH",
             font=("Courier", 20), command=lambda: [self.select_high()], state="disabled",
-            disabledforeground="grey1", anchor=tk.N, pady=28
+            disabledforeground="grey1", anchor=tk.N, pady=y_offset
         )
         self.collect_button = tk.Button(
             self.button_area, bg="gold4", activebackground="gold4", text="COLLECT",
             font=("Courier", 20), command=lambda: [self.collect_current_win()], state="disabled",
-            disabledforeground="grey1", anchor=tk.N, pady=28
+            disabledforeground="grey1", anchor=tk.N, pady=y_offset
         )
 
         # Canvas images
