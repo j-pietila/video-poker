@@ -75,7 +75,7 @@ class PokerGUI(tk.Tk):
         self.change_button_state(self.double_button, "normal", "DarkOrange1")
         self.bottom_bar.configure(bg="DeepPink3")
         self.rolling_double_options_label.config(bg="DeepPink3")
-        self.bottom_bar.coords(self.current_win_window, 600, 18)
+        self.bottom_bar.coords(self.current_win_window, 600, 15)
         self.current_win.set(f"{self.game.current_win:.2f}")
         self.bottom_bar.itemconfigure(self.current_win_window, state="normal")
         self.bottom_bar.itemconfigure(self.double_question_window, state="normal")
@@ -87,7 +87,7 @@ class PokerGUI(tk.Tk):
         self.change_button_state(self.deal_button, "normal", "green3")
         self.bottom_bar.configure(bg="snow4")
         self.rolling_double_options_label.config(bg="snow4")
-        self.bottom_bar.coords(self.current_win_window, 600, 18)
+        self.bottom_bar.coords(self.current_win_window, 600, 15)
         self.current_win.set(f"{self.game.current_win:.2f}")
         self.bottom_bar.itemconfigure(self.current_win_window, state="hidden")
         self.bottom_bar.itemconfigure(self.double_question_window, state="hidden")
@@ -96,7 +96,7 @@ class PokerGUI(tk.Tk):
     def active_doubling_view(self):
         """Update GUI to show active doubling view."""
         self.change_button_state(self.collect_button, "disabled", "gold4")
-        self.bottom_bar.coords(self.current_win_window, 270, 16)
+        self.bottom_bar.coords(self.current_win_window, 270, 15)
         self.current_win.set(f"{self.game.current_win:.2f}")
         self.rolling_double_options_label.config(bg="DeepPink3")
         self.bottom_bar.itemconfigure(self.double_question_window, state="hidden")
@@ -491,12 +491,12 @@ class PokerGUI(tk.Tk):
 
         # Canvas texts
         self.bet_level_text = self.top_bar.create_text(
-            532, 48,
+            532, 36, anchor=tk.N,
             text=f"Bet {self.game.bet_levels[self.game.bet_level]:.2f}",
             font=("Courier", 28)
         )
         self.winning_table_text = self.middle_area.create_text(
-            530, 162, text=self.game.change_win_table(), font=("Courier", 20), fill="DarkOrange2"
+            480, 152, text=self.game.change_win_table(), font=("Courier", 22), fill="DarkOrange2"
         )
         self.top_bar.tag_raise(self.bet_level_text)
 
@@ -518,11 +518,11 @@ class PokerGUI(tk.Tk):
         # Labels
         self.credits_label = tk.Label(
             self.top_bar, bg="navy", fg="azure", font=("Courier", 30),
-            textvariable=self.credits, anchor=tk.W, padx=20
+            textvariable=self.credits, anchor=tk.N, pady=18
         )
         self.wins_label = tk.Label(
             self.top_bar, bg="navy", fg="azure", font=("Courier", 30),
-            textvariable=self.wins, anchor=tk.W, padx=20
+            textvariable=self.wins, anchor=tk.N, pady=18
         )
 
         self.card_back_label = tk.Label(
@@ -531,26 +531,32 @@ class PokerGUI(tk.Tk):
         self.card_back_label.image = self.card_back
 
         self.first_card_hold_label = tk.Label(
-            self.bottom_bar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19)
+            self.bottom_bar, bg="cyan2", fg="navy", text="hold",
+            font=("Courier", 19), anchor=tk.N, pady=18
         )
         self.second_card_hold_label = tk.Label(
-            self.bottom_bar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19)
+            self.bottom_bar, bg="cyan2", fg="navy", text="hold",
+            font=("Courier", 19), anchor=tk.N, pady=18
         )
         self.third_card_hold_label = tk.Label(
-            self.bottom_bar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19)
+            self.bottom_bar, bg="cyan2", fg="navy", text="hold",
+            font=("Courier", 19), anchor=tk.N, pady=18
         )
         self.fourth_card_hold_label = tk.Label(
-            self.bottom_bar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19)
+            self.bottom_bar, bg="cyan2", fg="navy", text="hold",
+            font=("Courier", 19), anchor=tk.N, pady=18
         )
         self.fifth_card_hold_label = tk.Label(
-            self.bottom_bar, bg="cyan2", fg="navy", text="hold", font=("Courier", 19)
+            self.bottom_bar, bg="cyan2", fg="navy", text="hold",
+            font=("Courier", 19), anchor=tk.N, pady=18
         )
         self.double_question_label = tk.Label(
-            self.bottom_bar, bg="DeepPink3", text="WANT TO DOUBLE?", font=("Courier", 26)
+            self.bottom_bar, bg="DeepPink3", text="WANT TO DOUBLE?",
+            font=("Courier", 26), anchor=tk.N, pady=18
         )
         self.rolling_double_options_label = tk.Label(
-            self.bottom_bar, fg="navy", bg="DeepPink3",
-            font=("Courier", 28), textvariable=self.doubling_options
+            self.bottom_bar, fg="navy", bg="DeepPink3", font=("Courier", 28),
+            textvariable=self.doubling_options, anchor=tk.N, pady=12
         )
         self.rolling_double_options_left_mask_label = tk.Label(
             self.bottom_bar, bg="DeepPink3"
@@ -560,37 +566,38 @@ class PokerGUI(tk.Tk):
         )
         self.current_win_label = tk.Label(
             self.bottom_bar, bg="navy", fg="azure", font=("Courier", 24),
-            textvariable=self.current_win
+            textvariable=self.current_win, anchor=tk.N, pady=18
         )
         self.current_bet_label = tk.Label(
-            self.bottom_bar, bg="DeepPink3", text="BET ", font=("Courier", 24), anchor="e"
+            self.bottom_bar, bg="DeepPink3", text="BET ", font=("Courier", 28),
+            anchor=tk.NE, pady=16
         )
 
         # Buttons
         self.first_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
             textvariable=self.hold_button, command=lambda: [self.hold(0)], state="disabled",
-            disabledforeground="grey1"
+            disabledforeground="grey1", anchor=tk.N, pady=28
         )
         self.second_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
             textvariable=self.hold_button, command=lambda: [self.hold(1)], state="disabled",
-            disabledforeground="grey1"
+            disabledforeground="grey1", anchor=tk.N, pady=28
         )
         self.third_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
             textvariable=self.hold_button, command=lambda: [self.hold(2)], state="disabled",
-            disabledforeground="grey1"
+            disabledforeground="grey1", anchor=tk.N, pady=28
         )
         self.fourth_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
             textvariable=self.hold_button, command=lambda: [self.hold(3)], state="disabled",
-            disabledforeground="grey1"
+            disabledforeground="grey1", anchor=tk.N, pady=28
         )
         self.fifth_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
             textvariable=self.hold_button, command=lambda: [self.hold(4)], state="disabled",
-            disabledforeground="grey1"
+            disabledforeground="grey1", anchor=tk.N, pady=28
         )
         self.hold_buttons = [
             self.first_card_hold_button,
@@ -602,31 +609,33 @@ class PokerGUI(tk.Tk):
 
         self.bet_button = tk.Button(
             self.button_area, bg="blue2", activebackground="navy", text="BET",
-            font=("Courier", 20), command=lambda: [self.change_bet()], disabledforeground="grey1"
+            font=("Courier", 20), command=lambda: [self.change_bet()], disabledforeground="grey1",
+            anchor=tk.N, pady=28
         )
         self.deal_button = tk.Button(
             self.button_area, bg="green3", activebackground="dark green", text="DEAL",
-            font=("Courier", 20), command=lambda: [self.deal()], disabledforeground="grey1"
+            font=("Courier", 20), command=lambda: [self.deal()], disabledforeground="grey1",
+            anchor=tk.N, pady=28
         )
         self.double_button = tk.Button(
             self.button_area, bg="DarkOrange4", activebackground="DarkOrange4", text="DOUBLE",
             font=("Courier", 20), command=lambda: [self.activate_doubling()], state="disabled",
-            disabledforeground="grey1"
+            disabledforeground="grey1", anchor=tk.N, pady=28
         )
         self.low_button = tk.Button(
             self.button_area, bg="DarkOrange4", activebackground="DarkOrange4", text="LOW",
             font=("Courier", 20), command=lambda: [self.select_low()], state="disabled",
-            disabledforeground="grey1"
+            disabledforeground="grey1", anchor=tk.N, pady=28
         )
         self.high_button = tk.Button(
             self.button_area, bg="DarkOrange4", activebackground="DarkOrange4", text="HIGH",
             font=("Courier", 20), command=lambda: [self.select_high()], state="disabled",
-            disabledforeground="grey1"
+            disabledforeground="grey1", anchor=tk.N, pady=28
         )
         self.collect_button = tk.Button(
             self.button_area, bg="gold4", activebackground="gold4", text="COLLECT",
             font=("Courier", 20), command=lambda: [self.collect_current_win()], state="disabled",
-            disabledforeground="grey1"
+            disabledforeground="grey1", anchor=tk.N, pady=28
         )
 
         # Canvas images
@@ -696,11 +705,11 @@ class PokerGUI(tk.Tk):
             window=self.fifth_card_hold_label, state="hidden"
         )
         self.double_question_window = self.bottom_bar.create_window(
-            230, 18, anchor=tk.NW, height=60, width=340,
+            230, 14, anchor=tk.NW, height=60, width=340,
             window=self.double_question_label, state="hidden"
         )
         self.current_win_window = self.bottom_bar.create_window(
-            600, 18, anchor=tk.NW, height=60, width=180,
+            600, 14, anchor=tk.NW, height=60, width=180,
             window=self.current_win_label, state="hidden"
         )
         self.active_doubling_window = self.bottom_bar.create_window(
