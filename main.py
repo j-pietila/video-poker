@@ -506,7 +506,7 @@ class PokerGUI(tk.Tk):
         )
 
         # Canvas texts
-        y_val = 36 if aspect_ratio == 1.9 else 28
+        y_val = 28 if aspect_ratio == 1.6 else 36
 
         self.bet_level_text = self.top_bar.create_text(
             532, y_val, anchor=tk.N,
@@ -514,14 +514,14 @@ class PokerGUI(tk.Tk):
             font=("Courier", 28)
         )
 
-        y_val = 152 if aspect_ratio == 1.9 else 148
-        font_size = 22 if aspect_ratio == 1.9 else 20
+        y_val = 148 if aspect_ratio == 1.6 else 152
+        font_size = 20 if aspect_ratio == 1.6 else 22
 
         self.winning_table_text = self.middle_area.create_text(
             530, y_val, text=self.game.change_win_table(),
             font=("Courier", font_size), fill="DarkOrange2"
         )
-        
+
         self.top_bar.tag_raise(self.bet_level_text)
 
         # StringVars
@@ -540,7 +540,7 @@ class PokerGUI(tk.Tk):
         self.hold_button.set("HOLD")
 
         # Labels
-        y_offset = 18 if aspect_ratio == 1.9 else 10
+        y_offset = 10 if aspect_ratio == 1.6 else 18
 
         self.credits_label = tk.Label(
             self.top_bar, bg="navy", fg="azure", font=("Courier", 30),
@@ -556,7 +556,7 @@ class PokerGUI(tk.Tk):
         )
         self.card_back_label.image = self.card_back
 
-        y_offset = 18 if aspect_ratio == 1.9 else 12
+        y_offset = 12 if aspect_ratio == 1.6 else 18
 
         self.first_card_hold_label = tk.Label(
             self.bottom_bar, bg="cyan2", fg="navy", text="hold",
@@ -583,7 +583,7 @@ class PokerGUI(tk.Tk):
             font=("Courier", 26), anchor=tk.N, pady=y_offset
         )
 
-        y_offset = 12 if aspect_ratio == 1.9 else 3
+        y_offset = 3 if aspect_ratio == 1.6 else 12
 
         self.rolling_double_options_label = tk.Label(
             self.bottom_bar, fg="navy", bg="DeepPink3", font=("Courier", 28),
@@ -596,14 +596,14 @@ class PokerGUI(tk.Tk):
             self.bottom_bar, bg="DeepPink3"
         )
 
-        y_offset = 18 if aspect_ratio == 1.9 else 10
+        y_offset = 10 if aspect_ratio == 1.6 else 18
 
         self.current_win_label = tk.Label(
             self.bottom_bar, bg="navy", fg="azure", font=("Courier", 24),
             textvariable=self.current_win, anchor=tk.N, pady=y_offset
         )
 
-        y_offset = 16 if aspect_ratio == 1.9 else 7
+        y_offset = 7 if aspect_ratio == 1.6 else 16
 
         self.current_bet_label = tk.Label(
             self.bottom_bar, bg="DeepPink3", text="BET ", font=("Courier", 28),
@@ -611,7 +611,7 @@ class PokerGUI(tk.Tk):
         )
 
         # Buttons
-        y_offset = 28 if aspect_ratio == 1.9 else 23
+        y_offset = 23 if aspect_ratio == 1.6 else 28
 
         self.first_card_hold_button = tk.Button(
             self.button_area, bg="red4", activebackground="red4", font=("Courier", 20),
